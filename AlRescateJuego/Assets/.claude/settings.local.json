@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/mateo/OneDrive/Escritorio/AlRescate/AlRescateJuego/**)",
+      "Bash(cat .gitignore)"
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class GachaUIController : MonoBehaviour
+{
+    [Header("Botones HUD")]
+    public Button btnPullX1;
+    public Button btnPullX10;
+    public Button btnShop;
+    public Button btnCollection;
+    public Button btnOptions;
+
+    [Header("Canvas")]
+    public GameObject canvasResult;
+    public GameObject canvasShop;
+    public GameObject canvasCollection;
+
+    [Header("Animacion")]
+    public RevealAnimationController revealController;
+    public Animator gachaMachineAnimator;
+
+    [Header("Bono de bienvenida")]
+    public GameObject welcomePanel;
+    public int welcomeGems = 1600;
+
+    void Start()
+    {
+        btnPullX1.onClick.AddListener(OnPullX1);
+        btnPullX10.onClick.AddListener(OnPullX10);
+        btnShop.onClick.AddListener(() => SetCanvas(canvasShop, true));
+        btnCollection.onClick.AddListener(() => SetCanvas(canvasCollection, true));
+        btnOptions.onClick.AddListener(OnOptionsClicked);
+        revealController.SetPullAgainAction(OnPullX1);
+
+        canvasResult.SetActive(false);
+        canvasShop.SetActive(false);
+        canvasCollection.SetActive(false);
+
+        TryGiveWelcomeBonus();
+        AudioManager.Instance.PlayHubMusic();
+
+        if (PlayerPrefs.GetInt("OpenCollectionOnStart", 0) == 1)
+        {
+            PlayerPrefs.SetInt("OpenCollectionOnStart", 0);
+            SetCanvas(canvasCollection, true);
+        }
+    }
+
+    void TryGiveWelcomeBonus()
+    {
+        if (!SaveSystem.Current.firstLaunch) return;
+        SaveSystem.Current.firstLaunch = false;
+        PlayerInventory.Instance.AddGems(welcomeGems);
+        if (welcomePanel != null) welcomePanel.SetActive(true);
+        SaveSystem.Save();
+    }
+
+    public void SetCanvas(GameObject c, bool active)
+    {
+        c.SetActive(active);
+        AudioManager.Instance.Play(active ? "sfx_ui_click" : "sfx_ui_close");
+    }
+
+    private void OnPullX1()
+    {
+        if (GachaManager.Instance.TryPullX1(out var r))
+        {
+            if (gachaMachineAnimator != null)
+                gachaMachineAnimator.SetTrigger("TrigSpin");
+            StartCoroutine(revealController.PlayX1(r));
+        }
+    }
+
+    private void OnPullX10()
+    {
+        if (GachaManager.Instance.TryPullX10(out var results))
+        {
+            if (gachaMachineAnimator != null)
+                gachaMachineAnimator.SetTrigger("TrigSpin");
+            StartCoroutine(revealController.PlayX10(results));
+        }
+    }
+
+    private void OnOptionsClicked()
+    {
+        AudioManager.Instance.Play("sfx_ui_click");
+        Debug.Log("Opciones (placeholder)");
+    }
+}

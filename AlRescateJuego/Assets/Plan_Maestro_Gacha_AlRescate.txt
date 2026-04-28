@@ -1,0 +1,2689 @@
+AL RESCATE
+Sistema Gacha - Plan Maestro de Desarrollo
+Unity 2022.3.62f2 LTS - URP 2D - Input System nuevo
+Documento tecnico exhaustivo - listo para implementacion desde cero
+
+================================================================================
+PROGRESO ACTUAL  (ultima actualizacion: 2026-04-27)
+================================================================================
+
+[COMPLETADO] ETAPA 1  - Configuracion del proyecto Unity
+[COMPLETADO] ETAPA 2  - Estructura de carpetas + .gitignore
+[COMPLETADO] ETAPA 3  - ScriptableObjects (PetData, GachaItemData, GachaPool)
+                         5 mascotas + 8 items creados y asignados en MainGachaPool
+[COMPLETADO] ETAPA 4  - SaveSystem y SaveData (persistencia JSON + PlayerPrefs)
+[COMPLETADO] ETAPA 5  - GachaManager + PitySystem + WeightedRandom (logica pura)
+                         Tirada x1 y x10 funcionando; pity counters operativos
+[COMPLETADO] ETAPA 6  - Escena MainMenu (00_MainMenu) con botones y navegacion
+[COMPLETADO] ETAPA 7  - Escena GachaHub (01_GachaHub) layout base
+[COMPLETADO] ETAPA 8  - PlayerInventory + CurrencyDisplay (gemas animadas)
+[COMPLETADO] ETAPA 9  - HUD completo: botones x1/x10, tienda, coleccion, opciones
+[COMPLETADO] ETAPA 10 - Tienda simulada (ShopManager con log de compra)
+[COMPLETADO] ETAPA 11 - Panel de resultado + RevealAnimationController
+                         Haz de luz por rareza, cartas x1 y x10, boton Saltar
+[EN CURSO]   ETAPA 12 - Coleccion: panel abierto, CollectionCell prefab creado
+                         PENDIENTE: asignar Database y CellPrefab en CollectionUI,
+                         verificar grid con mascotas obtenidas, filtros y equipar
+[PENDIENTE]  ETAPA 13 - PetController: mascota flotando en hub
+[PENDIENTE]  ETAPA 14 - Efectos de particulas por rareza (4 ParticleSystems)
+[PENDIENTE]  ETAPA 15 - Animaciones de la maquina gachapon (Idle/Spin/Cooldown)
+[PENDIENTE]  ETAPA 16 - Animaciones de UI (FadeIn/FadeOut/ScalePop en paneles)
+[PENDIENTE]  ETAPA 17 - AudioManager: AudioMixer + importar clips de SFX y musica
+[PENDIENTE]  ETAPA 18 - Glow, shimmer y postprocesado (Bloom URP 2D)
+[PENDIENTE]  ETAPA 19 - Testing de pity y probabilidades (escena Sandbox)
+[PENDIENTE]  ETAPA 20 - Pulido visual, build PC y Android
+
+NOTAS TECNICAS:
+- Escenas generadas via SceneBuilder.cs (menu AlRescate en Unity)
+- Prefabs en Assets/_Project/Prefabs/UI/: ResultCard.prefab, CollectionCell.prefab
+- Scripts en Assets/_Project/Scripts/ organizados por carpeta
+- El GachaPool necesita tener las listas de mascotas/items asignadas manualmente
+- AudioManager funciona pero sin clips asignados (warnings en consola, no errores)
+- La escena Bootstrap (99_Bootstrap) carga SaveSystem antes de pasar a MainMenu
+
+Motor: Unity 2022.3.62f2 LTS
+Pipeline: Universal Render Pipeline 2D (URP 2D)
+Plataformas objetivo: PC y movil
+Input System: Unity New Input System
+Proposito: Recaudacion de fondos para la Cruz Roja.
+(Sin pasarela real de pagos: las compras se simulan con logs en consola)
+
+================================================================================
+INDICE GENERAL
+================================================================================
+
+1.  Contexto y vision general del proyecto
+2.  Configuracion inicial del proyecto Unity
+3.  Estructura de carpetas del proyecto
+4.  Diseno funcional del sistema Gacha
+5.  Catalogo de contenido: mascotas e items
+6.  Sistema de rareza y probabilidades
+7.  Sistema de Pity (soft pity y hard pity)
+8.  Modos de tirada (x1 y x10)
+9.  Estructura de escenas
+10. HUD, paneles y UI completa
+11. Arte, sprites, animaciones y efectos visuales
+12. Efectos de particulas por rareza
+13. Audio y AudioManager
+14. Arquitectura de codigo C#: scripts y responsabilidades
+15. ScriptableObjects: PetData, GachaItemData, GachaPool
+16. Algoritmo de probabilidades (peso acumulado + pity)
+17. Sistema de guardado y persistencia (PlayerPrefs y JSON)
+18. Roadmap de implementacion paso a paso (20 etapas)
+19. Pruebas, testing y validacion del sistema
+20. Build, despliegue y publicacion final
+21. Apendices: assets, atajos y plantillas
+
+================================================================================
+1. CONTEXTO Y VISION GENERAL DEL PROYECTO
+================================================================================
+
+1.1 Resumen ejecutivo
+----------------------
+'Al Rescate' es un videojuego cuyo nucleo jugable es un sistema de gachapon. Toda la
+experiencia del jugador gira en torno a obtener mascotas e items mediante tiradas aleatorias
+dentro de una sola escena hub. El proposito del juego es recaudar fondos para la Cruz Roja:
+la tienda de gemas existe en la UI, pero no se integra con ninguna pasarela de pago real.
+Cada intento de compra muestra un mensaje en la consola de Unity simulando el flujo, y deja
+el sitio preparado para que en el futuro se conecte la pasarela oficial de la Cruz Roja.
+
+El proyecto se construye desde cero. No existe codigo previo a reutilizar. Todos los assets
+(sprites, audio, animaciones) se crearan o se solicitaran ad hoc; este documento describe sus
+dimensiones, formatos y configuracion de importacion para que el flujo de produccion sea
+reproducible.
+
+1.2 Stack tecnico definitivo
+-----------------------------
+Aspecto                  | Decision
+-------------------------|----------------------------------------------------------
+Motor                    | Unity 2022.3.62f2 LTS
+Pipeline grafico         | Universal Render Pipeline 2D (URP 2D)
+Lenguaje                 | C# (.NET Framework 4.x compatibility)
+Input                    | New Input System (com.unity.inputsystem) - sin legacy
+UI                       | uGUI con Canvas + TextMeshPro
+Tweening (opcional)      | DOTween Free (asset gratuito)
+Audio                    | Audio Mixer nativo + AudioSource pool propio
+Persistencia             | PlayerPrefs (rapido) + JSON en Application.persistentDataPath
+Plataformas              | PC (Windows / macOS / Linux) y Android (movil)
+
+1.3 Pilares de diseno
+----------------------
+- Coleccionabilidad: el jugador quiere completar la coleccion de mascotas. El gacha es la
+  unica via para obtenerlas.
+- Sentido de progreso: incluso las tiradas que no entregan una mascota legendaria entregan
+  items utiles, gemas u otros recursos.
+- Justicia percibida: el sistema de pity garantiza que ningun jugador se quede sin obtener
+  un legendario despues de muchas tiradas.
+- Espectaculo visual: la animacion de revelado se intensifica con la rareza, generando
+  momentos memorables.
+- Proposito social: la tienda comunica claramente que el jugador esta apoyando a la Cruz Roja.
+
+1.4 Estilo visual y referencia
+--------------------------------
+La referencia principal para el flujo del gacha es Genshin Impact: el jugador entra a un
+panel dedicado, ve la maquina/banner, presiona tirar x1 o x10, recibe una animacion de luz
+que va revelando los objetos, y al final aparece una pantalla con todas las cartas obtenidas.
+Cuando hay un legendario, la animacion previa cambia (haz dorado en lugar de azul), avisando
+al jugador que algo grande esta por aparecer.
+
+Para 'Al Rescate' la maquina gachapon es una capsula clasica de gachapones (esfera con base)
+con luces, estilizada visualmente para encajar en un universo 2D 'cute'. La paleta de la
+escena hub combina rojos calidos (referenciando a la Cruz Roja) con blancos y dorados de
+acento, evitando saturar al jugador.
+
+1.5 Flujo de juego de alto nivel
+----------------------------------
+1. El jugador abre el juego y aterriza en la escena MainMenu.
+2. Pulsa 'Jugar' y entra a la escena GachaHub.
+3. Si es la primera vez que abre el juego, recibe un paquete inicial de Gemas gratuitas.
+4. En el hub ve su contador de Gemas, su mascota equipada flotando junto a la camara,
+   y la maquina gachapon central.
+5. Pulsa 'Tirar x1' o 'Tirar x10'. Si tiene Gemas suficientes, se descuentan y se ejecuta
+   la tirada.
+6. Aparece el panel de Resultado con la animacion correspondiente segun la rareza obtenida.
+7. El jugador puede tirar de nuevo o cerrar el panel para volver al hub.
+8. Desde el HUD puede abrir la Tienda (compra simulada de gemas) o la Coleccion (ver y
+   equipar mascotas).
+9. Todo se persiste automaticamente entre sesiones (gemas, inventario, pity).
+
+================================================================================
+2. CONFIGURACION INICIAL DEL PROYECTO UNITY
+================================================================================
+
+2.1 Crear el proyecto
+----------------------
+1. Abrir Unity Hub, ir a 'Installs' y verificar Unity 2022.3.62f2. Instalarlo si no existe.
+2. Al instalarlo, anadir modulos: Windows Build Support (IL2CPP), Mac Build Support,
+   Linux Build Support, Android Build Support (incluyendo OpenJDK, Android SDK & NDK).
+3. En 'Projects' presionar 'New project'.
+4. Seleccionar la plantilla 2D (URP). Importante: usar esta y NO '2D Built-in Renderer'.
+5. Indicar nombre 'AlRescate' y carpeta destino. Pulsar 'Create project'.
+
+2.2 Verificacion de URP 2D
+----------------------------
+1. Edit > Project Settings > Graphics: 'Scriptable Render Pipeline Settings' debe tener
+   un asset URP.
+2. Edit > Project Settings > Quality: cada nivel de calidad debe referenciar un Renderer
+   URP 2D. Verificar que 'Render Pipeline Asset' este poblado.
+3. Abrir el asset URP en el inspector. En 'Renderer List' debe figurar un asset de tipo
+   2D Renderer. Si no, anadirlo: clic derecho en Project > Create > Rendering > URP >
+   2D Renderer Data.
+4. La camara principal debe tener Renderer Type = 'Custom' apuntando al 2D Renderer.
+
+NOTA: Si se ve todo de color magenta, ejecutar Window > Rendering > Render Pipeline
+Converter > Built-in to URP 2D para convertir automaticamente.
+
+2.3 Paquetes obligatorios
+--------------------------
+Abrir Window > Package Manager, seleccionar 'Unity Registry' e instalar:
+
+Paquete              | Version recomendada | Proposito
+---------------------|---------------------|------------------------
+Universal RP         | 14.0.x              | Pipeline 2D
+Input System         | 1.7.x               | Input nuevo
+TextMeshPro          | 3.0.x               | Texto vectorial
+2D Sprite            | 1.0.x               | Sprite Editor
+2D Animation         | 9.0.x               | Animacion 2D rigging
+2D PSD Importer      | 8.0.x               | Importar PSD multicapa
+Burst                | 1.8.x               | Optimizacion
+Mathematics          | 1.2.x               | Tipos vectoriales
+Cinemachine          | 2.9.x               | Camaras (shake)
+Unity UI             | 1.0.x               | Sistema uGUI
+
+2.3.1 Activar el New Input System
+1. Tras instalar Input System, aceptar la activacion del nuevo backend; el editor reiniciara.
+2. Edit > Project Settings > Player > Other Settings > Active Input Handling:
+   valor = 'Input System Package (New)'.
+3. Crear asset Input Actions: clic derecho > Create > Input Actions. Nombrar 'GameInputActions'.
+4. Anadir Action Maps: 'UI' y 'Player'.
+5. Marcar 'Generate C# Class' y aplicar; esto crea GameInputActions.cs automaticamente.
+
+2.3.2 Plugins externos opcionales
+- DOTween Free: tweening declarativo. Disponible gratis en el Asset Store.
+  Tras importarlo: Tools > Demigiant > DOTween Utility Panel > Setup DOTween.
+- Naughty Attributes (opcional): atributos para inspector.
+
+NOTA: DOTween es opcional. En este documento todos los efectos se entregan tambien con
+coroutines puras.
+
+2.4 Configuracion del Player Settings
+---------------------------------------
+Edit > Project Settings > Player:
+- Company Name: Cruz Roja
+- Product Name: Al Rescate
+- Default Orientation (Android): Portrait
+- Color Space: Linear (mejor para URP)
+- Auto Graphics API: activado
+- Scripting Backend: IL2CPP para release; Mono para iteracion rapida
+- Api Compatibility Level: .NET Framework
+- Managed Stripping Level: Low durante desarrollo
+
+2.5 Configuracion grafica recomendada
+---------------------------------------
+- Project Settings > Quality: tres niveles: Mobile-Low, Mobile-High, Desktop
+- Pixels Per Unit (PPU): 100 por defecto; 64 para iconos pequenos
+- Camara principal: Orthographic, size 5.4, Background = Solid Color
+- Sorting Layers (en este orden): Background, Midground, Pets, FX, Foreground, UI
+
+================================================================================
+3. ESTRUCTURA DE CARPETAS DEL PROYECTO
+================================================================================
+
+Assets/
+|-- _Project/
+|   |-- Animations/
+|   |   |-- Pets/
+|   |   |   |-- Foxy/
+|   |   |   |   |-- Foxy_Idle.anim
+|   |   |   |   |-- Foxy_Reveal.anim
+|   |   |   |   |-- Foxy_Floating.anim
+|   |   |   |   `-- Foxy_AnimatorController.controller
+|   |   |   |-- Drako/
+|   |   |   |-- Lumi/
+|   |   |   |-- Pico/
+|   |   |   `-- Aurora/
+|   |   |-- Machine/
+|   |   |   |-- GachaMachine_Idle.anim
+|   |   |   |-- GachaMachine_Spin.anim
+|   |   |   `-- GachaMachine_AnimatorController.controller
+|   |   `-- UI/
+|   |       |-- Panel_FadeIn.anim
+|   |       |-- Panel_FadeOut.anim
+|   |       `-- ResultCard_RarityReveal.anim
+|   |-- Audio/
+|   |   |-- Music/
+|   |   |   `-- HubMusic_Loop.ogg
+|   |   |-- SFX/
+|   |   |   |-- Machine/
+|   |   |   |-- Reveal/
+|   |   |   |-- UI/
+|   |   |   `-- Pets/
+|   |   `-- Mixer/
+|   |       `-- MasterMixer.mixer
+|   |-- Data/
+|   |   |-- Pets/
+|   |   |   |-- Pet_Foxy.asset
+|   |   |   |-- Pet_Drako.asset
+|   |   |   |-- Pet_Lumi.asset
+|   |   |   |-- Pet_Pico.asset
+|   |   |   `-- Pet_Aurora.asset
+|   |   |-- Items/
+|   |   |   |-- Item_Shield.asset
+|   |   |   |-- Item_GemMultiplier.asset
+|   |   |   |-- Item_Invincibility.asset
+|   |   |   `-- ...
+|   |   `-- Pools/
+|   |       `-- MainGachaPool.asset
+|   |-- Materials/
+|   |   |-- UI_Glow_Common.mat
+|   |   |-- UI_Glow_Rare.mat
+|   |   |-- UI_Glow_Epic.mat
+|   |   `-- UI_Glow_Legendary.mat
+|   |-- Prefabs/
+|   |   |-- Pets/
+|   |   |-- Particles/
+|   |   |-- UI/
+|   |   `-- Machine/
+|   |-- Resources/
+|   |-- Scenes/
+|   |   |-- 00_MainMenu.unity
+|   |   |-- 01_GachaHub.unity
+|   |   `-- 99_Bootstrap.unity
+|   |-- Scripts/
+|   |   |-- Core/
+|   |   |   |-- GameBootstrapper.cs
+|   |   |   |-- GameStateContext.cs
+|   |   |   `-- ServiceLocator.cs
+|   |   |-- Gacha/
+|   |   |   |-- GachaManager.cs
+|   |   |   |-- GachaDatabase.cs
+|   |   |   |-- PitySystem.cs
+|   |   |   `-- GachaResult.cs
+|   |   |-- Inventory/
+|   |   |   |-- PlayerInventory.cs
+|   |   |   `-- PlayerProfile.cs
+|   |   |-- Pets/
+|   |   |   `-- PetController.cs
+|   |   |-- UI/
+|   |   |   |-- GachaUIController.cs
+|   |   |   |-- ShopManager.cs
+|   |   |   |-- CollectionUI.cs
+|   |   |   |-- RevealAnimationController.cs
+|   |   |   |-- CurrencyDisplay.cs
+|   |   |   `-- UIAnimator.cs
+|   |   |-- Save/
+|   |   |   |-- SaveSystem.cs
+|   |   |   `-- SaveData.cs
+|   |   |-- Audio/
+|   |   |   `-- AudioManager.cs
+|   |   `-- Utility/
+|   |       |-- WeightedRandom.cs
+|   |       `-- Extensions.cs
+|   |-- Settings/
+|   |   |-- Input/
+|   |   |   `-- GameInputActions.inputactions
+|   |   `-- URP/
+|   |       |-- URP-Renderer-2D.asset
+|   |       `-- URP-PipelineAsset.asset
+|   |-- Sprites/
+|   |   |-- Backgrounds/
+|   |   |-- Pets/
+|   |   |-- Items/
+|   |   |-- Machine/
+|   |   |-- UI/
+|   |   |   |-- Frames/
+|   |   |   |-- Icons/
+|   |   |   `-- Buttons/
+|   |   `-- Particles/
+|   `-- ThirdParty/
+`-- Plugins/
+
+3.1 Convenciones de nombres
+-----------------------------
+- Scripts: PascalCase (PetController.cs)
+- ScriptableObjects: Prefijo con tipo. Ej: Pet_Foxy.asset, Item_Shield.asset
+- Sprites: snake_case con prefijo. Ej: pet_foxy_idle_01.png, ui_btn_pull10.png
+- Animaciones: Sujeto_Estado.anim (Foxy_Idle.anim)
+- Audio: sfx_categoria_descripcion.ogg / mus_descripcion.ogg
+- Materiales: Mat_<Tipo>_<Nombre>.mat
+- Prefabs: Pf_<Tipo>_<Nombre>.prefab
+
+================================================================================
+4. DISENO FUNCIONAL DEL SISTEMA GACHA
+================================================================================
+
+4.1 Moneda interna: Gemas
+--------------------------
+- Es la unica forma de tirar del gacha. No hay tickets ni divisas alternativas.
+- Se obtiene jugando: bonificaciones diarias (50 Gemas), logros (100-300 Gemas) y
+  tiradas que devuelven gemas extra como item raro.
+- Tambien se obtiene 'comprando' en la tienda (compras simuladas).
+- Cada tirada x1 cuesta 160 Gemas.
+- Cada tirada x10 cuesta 1.440 Gemas (10% de descuento respecto a 10 tiradas individuales).
+- El primer paquete de bienvenida son 1.600 Gemas gratis (entregadas la primera vez).
+
+4.2 Contenido obtenible
+------------------------
+
+4.2.1 Mascotas
+- Son el contenido estrella. Cada mascota es unica en la coleccion.
+- Si ya se posee y vuelve a salir, se convierte en Gemas equivalentes a su rareza.
+- 5 mascotas iniciales, distribuidas entre rarezas.
+- Cada mascota tiene: sprite estatico, animacion idle, animacion de obtencion, animacion
+  equipada flotando, efecto de particulas y un powerup pasivo.
+- Solo puede haber una mascota equipada a la vez. Se elige desde Coleccion.
+
+4.2.2 Items de powerup temporal
+- Items consumibles que dan ventajas durante una sesion. Acumulables.
+- Aparecen en el inventario y pueden usarse desde la UI.
+- Son mas comunes que las mascotas.
+- Tienen rareza, lo que afecta el efecto que entregan.
+
+4.3 Tasas globales de la pool
+-------------------------------
+Sub-pool          | Probabilidad global | Comentario
+------------------|---------------------|------------------------------------------
+Items de powerup  | 70%                 | Predominantes; flujo de recompensa positivo
+Mascotas          | 30%                 | Reservadas para los momentos especiales
+
+================================================================================
+5. CATALOGO INICIAL: MASCOTAS E ITEMS
+================================================================================
+
+5.1 Mascotas (5 iniciales)
+---------------------------
+Nombre | Especie            | Rareza     | Paleta                  | Powerup pasivo
+-------|--------------------|-----------:|-------------------------|------------------------
+Pico   | Polluelo amarillo  | Comun      | Amarillo limon, naranja  | +5% velocidad movimiento
+Foxy   | Zorro de fuego     | Raro       | Rojo, naranja, blanco   | +10% alcance de ataque
+Lumi   | Luciernaga gigante | Raro       | Verde lima, amarillo    | Regeneracion 1 HP cada 4s
+Drako  | Dragon obsidiana   | Epico      | Negro, violeta, plateado | -20% cooldown habilidades
+Aurora | Fenix celestial    | Legendario | Dorado, blanco, cian    | +25% resistencia al dano
+
+5.1.1 Pico - Comun
+Polluelo regordete amarillo limon, ojos negros grandes, piquito naranja, alas cortas.
+Idle: parpadeo y rebote suave (1.2 Hz). Reveal: brillo blanco corto y aterrizaje rebotando.
+Aura: ninguna.
+
+5.1.2 Foxy - Raro
+Zorro pequeno con cola de llamas suaves. Idle: cola ondulando, parpadeo lento.
+Reveal: anillo de fuego que se expande y revela al zorro de pie.
+Aura ligera: chispas naranjas alrededor.
+
+5.1.3 Lumi - Raro
+Luciernaga grande verde lima con un punto de luz amarillo en la cola.
+Idle: parpadeo de la luz cada 0.8s.
+Reveal: nube de motas verdes brillantes que se condensan en la luciernaga.
+
+5.1.4 Drako - Epico
+Dragon pequeno negro con escamas violeta iridiscente. Idle: alas batiendo lentamente.
+Reveal: explosion violeta y silueta dorada antes del personaje.
+Aura: humo violeta sutil.
+
+5.1.5 Aurora - Legendario
+Fenix dorado con plumaje degradado a cian. Idle: alas extendidas, plumas flotando.
+Reveal: rayo dorado vertical que llena la pantalla, plumas cayendo, fenix abriendo las alas.
+Aura constante: particulas doradas en espiral, rastros luminosos.
+
+5.2 Items de powerup temporal (8 iniciales)
+---------------------------------------------
+Nombre                  | Rareza     | Tipo     | Duracion  | Efecto
+------------------------|------------|----------|-----------|----------------------------------
+Vendaje basico          | Comun      | Curacion | Instant.  | +10 HP de inmediato
+Granada de humo         | Comun      | Defensa  | 5 s       | Reduce probabilidad impacto 25%
+Multiplicador x2        | Raro       | Buff     | 60 s      | Duplica Gemas obtenidas en sesion
+Escudo reflectante      | Raro       | Defensa  | 10 s      | Bloquea 50% del dano recibido
+Adrenalina              | Epico      | Buff     | 30 s      | +25% velocidad y dano del jugador
+Bandera de la Cruz Roja | Epico      | Soporte  | 30 s      | Cura aliados en area cada 3 s
+Latido divino           | Legendario | Defensa  | 8 s       | Invencibilidad total
+Tirada gratuita         | Legendario | Especial | Instant.  | Otorga una tirada x1 gratis
+
+================================================================================
+6. SISTEMA DE RAREZA Y PROBABILIDADES
+================================================================================
+
+6.1 Cuatro niveles de rareza
+-----------------------------
+Rareza      | Tasa base | Color de marco
+------------|-----------|------------------
+Comun       | 78.3%     | Gris azulado (#9CA3AF)
+Raro        | 15.0%     | Verde esmeralda (#10B981)
+Epico       | 6.1%      | Violeta (#8B5CF6)
+Legendario  | 0.6%      | Dorado (#F59E0B)
+
+Las tasas suman exactamente 100% (78.3 + 15.0 + 6.1 + 0.6 = 100.0).
+
+6.2 Distincion visual y sensorial por rareza
+---------------------------------------------
+Rareza     | Particulas                  | Animacion                  | Sonido
+-----------|-----------------------------|-----------------------------|-------------------
+Comun      | Chispas grises (10 part.)   | Rebote simple               | ding_common (0.3s)
+Raro       | Brillos verdes (30 part.)   | Chispas + flash blanco      | ding_rare (0.7s)
+Epico      | Espiral violeta (60 part.)  | Camera shake + rayos        | fanfare_epic (1.3s)
+Legendario | Cascada dorada continua     | Pantalla blanca, lente, rayo| fanfare_legendary (3.5s)
+
+6.3 Pre-revelacion: indicador 'haz de luz'
+-------------------------------------------
+Antes de mostrar la carta, la maquina dispara un haz de luz:
+- Azul: para Comun/Raro
+- Violeta: para Epico
+- Dorado: para Legendario
+
+================================================================================
+7. SISTEMA DE PITY (GARANTIA DE LEGENDARIO Y EPICO)
+================================================================================
+
+Tres mecanismos simultaneos:
+- Soft pity para Legendario: a partir de la tirada 75 sin Legendario, la probabilidad
+  crece linealmente +6 puntos porcentuales por cada tirada extra.
+- Hard pity para Legendario: en la tirada 90 sin Legendario, la siguiente garantiza
+  un Legendario.
+- Pity de Epico: cada 10 tiradas, si no se obtuvo ningun Epico (o superior), la decima
+  tirada garantiza al menos un Epico.
+
+7.1 Algoritmo del Soft Pity (Legendario)
+-----------------------------------------
+probabilidadLegendarioBase = 0.006   // 0.6%
+softPityInicio = 75
+hardPity = 90
+
+if (n + 1) >= hardPity:
+    probLegendario = 1.0   // garantia absoluta
+else if (n + 1) > softPityInicio:
+    extra = ((n + 1) - softPityInicio) * 0.06   // +6% por tirada extra
+    probLegendario = min(1.0, probabilidadLegendarioBase + extra)
+else:
+    probLegendario = probabilidadLegendarioBase
+
+Si se obtiene un Legendario, el contador n se reinicia a 0.
+
+7.2 Algoritmo del Pity de Epico
+---------------------------------
+pityEpicoUmbral = 10
+if (m + 1) >= pityEpicoUmbral and rolledRarity == Comun or rolledRarity == Raro:
+    rolledRarity = Epico
+
+7.3 Persistencia del pity
+---------------------------
+Los contadores n (legendario) y m (epico) deben persistir entre sesiones.
+La persistencia se realiza en PlayerPrefs y en el JSON principal.
+
+7.4 Tirada multiple x10 y pity
+--------------------------------
+Cada tirada dentro del lote se evalua secuencialmente. El contador se actualiza despues
+de cada tirada.
+La tirada x10 garantiza al menos un objeto de rareza Raro o superior (si la simulacion
+produce 10 Comunes, la decima se fuerza a Raro).
+
+================================================================================
+8. MODOS DE TIRADA (x1 y x10)
+================================================================================
+
+Modo        | Coste      | Tiradas | Garantias
+------------|------------|---------|--------------------------------------------
+Tirada x1   | 160 Gemas  | 1       | Solo pity vigente
+Tirada x10  | 1440 Gemas | 10      | Pity vigente + minimo 1 Raro+ garantizado
+
+8.1 Animacion x1
+-----------------
+1. Jugador pulsa 'Tirar x1'. Se descuentan 160 Gemas.
+2. La maquina del hub se ilumina y gira (anim 1.5 s).
+3. Una capsula sale por el dispensador y rueda hasta el frente.
+4. Aparece un haz de luz vertical (color segun rareza maxima).
+5. Transicion a pantalla de Resultado con animacion segun rareza.
+6. Se suma el item al inventario y se actualiza el HUD.
+
+8.2 Animacion x10
+------------------
+1. Jugador pulsa 'Tirar x10'. Confirmacion previa: '?Confirmar x10 por 1.440 Gemas?'
+2. Se descuentan Gemas y la maquina entra en modo 'spin extendido' (3 s).
+3. Aparece una bandeja con 10 capsulas. Haz de luz general indica rareza maxima.
+4. Animacion individual carta por carta (con boton 'Saltar' en esquina superior derecha).
+5. Pantalla de resumen con las 10 cartas en grid y duplicados convertidos a Gemas.
+
+NOTA: Aunque el jugador salte la animacion, los datos del inventario se actualizan
+al terminar la tirada, no al ver cada carta.
+
+================================================================================
+9. ESTRUCTURA DE ESCENAS
+================================================================================
+
+Escena           | Build Index | Proposito
+-----------------|-------------|---------------------------------------------------
+99_Bootstrap     | 0           | Carga services singleton y luego pasa a MainMenu
+00_MainMenu      | 1           | Pantalla de inicio: jugar, coleccion, opciones
+01_GachaHub      | 2           | Escena principal del juego
+
+Los paneles (Resultado, Coleccion, Tienda) son overlays dentro de GachaHub (canvases
+que se activan/desactivan), no escenas separadas.
+
+9.1 Escena MainMenu - Jerarquia
+---------------------------------
+[Scene] 00_MainMenu
+|-- Main Camera (Orthographic)
+|-- Global Light 2D (URP 2D)
+|-- Background_Sprite
+|-- Canvas_MainMenu (Screen Space - Overlay)
+|   |-- Logo_AlRescate (Image)
+|   |-- VerticalGroup_Buttons
+|   |   |-- Btn_Play
+|   |   |-- Btn_Collection
+|   |   |-- Btn_Options
+|   |   |-- Btn_Credits
+|   |   `-- Btn_Quit
+|   |-- Footer_CruzRoja
+|   `-- Version_Label
+|-- EventSystem (Input System UI Input Module)
+`-- MainMenuController
+
+9.2 Escena GachaHub - Jerarquia
+---------------------------------
+[Scene] 01_GachaHub
+|-- Main Camera
+|-- Global Light 2D
+|-- Background_Layer (parallax 3 capas)
+|   |-- BG_Sky
+|   |-- BG_Mid
+|   `-- BG_Front
+|-- GachaMachine (sprite + Animator)
+|-- PetSpawnPoint
+|-- ParticleFX_Container
+|-- AudioManager (DontDestroyOnLoad)
+|-- Canvas_HUD (Sort Order 0)
+|   |-- TopBar
+|   |   |-- GemCounter
+|   |   |-- ShopButton
+|   |   |-- ActivePetWidget
+|   |   `-- PityBar (slider visual)
+|   |-- BottomBar
+|   |   |-- Btn_PullX1
+|   |   |-- Btn_PullX10
+|   |   `-- Btn_Collection
+|   `-- Btn_Options
+|-- Canvas_Result (Sort Order 10, desactivado)
+|   |-- DimmerBackground
+|   |-- ResultRoot
+|   |   |-- ResultCardContainer
+|   |   |-- Btn_PullAgain
+|   |   `-- Btn_Close
+|-- Canvas_Collection (Sort Order 20, desactivado)
+|   |-- DimmerBackground
+|   |-- CollectionRoot
+|   |   |-- Filters
+|   |   |-- ScrollView_Grid
+|   |   |-- DetailPanel
+|   |   `-- Btn_Close
+|-- Canvas_Shop (Sort Order 30, desactivado)
+|   |-- DimmerBackground
+|   |-- ShopRoot
+|   |   |-- ScrollView_Offers
+|   |   `-- Btn_Close
+|-- Canvas_Confirm (Sort Order 40)
+|-- EventSystem
+`-- HubController
+
+================================================================================
+10. HUD, PANELES Y UI COMPLETA
+================================================================================
+
+10.1 Filosofia de UI
+---------------------
+- Mobile-first: botones minimo 88x88 px en pantalla virtual 1080x1920.
+- Texto vectorial: todo el texto usa TextMeshProUGUI.
+- Canvas Scaler: Reference Resolution 1080x1920, Match = 0.5.
+- Animar siempre entradas y salidas de paneles.
+
+10.2 Top Bar (HUD principal)
+------------------------------
+Elemento        | Comportamiento
+----------------|--------------------------------------------------------------
+GemCounter      | Numero de Gemas, animado al cambiar
+ShopButton      | Abre Canvas_Shop
+ActivePetWidget | Muestra mascota equipada; al pulsar abre Coleccion
+PityBar         | Avance hasta hard pity 90; cambia color al entrar en soft pity
+
+10.6 Panel de Tienda simulada
+-------------------------------
+Paquete            | Gemas  | Precio MXN | Bonus
+-------------------|--------|------------|------
+Mini Apoyo         | 300    | $29        | -
+Apoyo Solidario    | 1.000  | $89        | +5%
+Heroe              | 2.500  | $199       | +10%
+Mecenas            | 6.500  | $499       | +15%
+Padrino Cruz Roja  | 15.000 | $999       | +25%
+
+// Comportamiento del boton 'Comprar' (simulado):
+public void OnBuyClicked(GemPackage pkg)
+{
+    Debug.Log($"[SHOP] El jugador intento comprar {pkg.gems} Gemas por ${pkg.priceMXN}. " +
+              "Aqui se integraria el sistema de pago real con la pasarela de Cruz Roja.");
+    UIAnimator.Bounce(buttonRect);
+    AudioManager.Instance.Play("ui_purchase_attempt");
+}
+
+10.7 Primera ejecucion
+------------------------
+La primera vez que se abre el juego se muestra un panel modal de bienvenida con la entrega
+de 1.600 Gemas gratuitas. Controlado por el flag SaveData.firstLaunch.
+
+10.8 Animaciones de UI
+------------------------
+- Aparicion de panel: escala 0.6 -> 1.0 (curva OutBack, 0.35 s) + alpha 0 -> 1.
+- Cierre de panel: escala -> 0.85 + alpha 0 en 0.18 s (curva InQuad).
+- Boton hover/click: escala 1.0 -> 1.05 (0.10 s) y vuelta.
+- ResultCard: Frame 0 -> 1 (0.4 s OutBack), sprite alpha 0 -> 1 (0.3 s).
+
+================================================================================
+11. ARTE, SPRITES, ANIMACIONES Y EFECTOS
+================================================================================
+
+11.1 Resoluciones de referencia
+---------------------------------
+Tipo de asset           | Tamano px        | PPU | Notas
+------------------------|------------------|-----|-----------------------------
+Mascotas (sprite base)  | 512x512          | 100 | Pivote bottom-center
+Mascotas (icono)        | 256x256          | 100 | Recorte cuadrado
+Items (icono)           | 256x256          | 100 | Mismo formato que mascotas
+UI Buttons              | 300x100 / 128x128| 100 | 9-Slice activado
+Marcos de rareza        | 320x420          | 100 | 9-Slice 16x16
+Maquina gachapon        | 1024x1280        | 100 | Pivote bottom-center
+Fondos parallax         | 1920x1080        | 100 | Tile horizontal activado
+Particulas (sprites)    | 128x128          | 100 | Texturas blandas con alfa
+
+11.2 Configuracion de importacion en Unity
+-------------------------------------------
+- Texture Type: Sprite (2D and UI)
+- Sprite Mode: Single (o Multiple para sprite sheets)
+- Pixels Per Unit: 100
+- Mesh Type: Tight (Full Rect para UI con 9-slice)
+- Filter Mode: Bilinear
+- Compression: ASTC 6x6 para movil, BC7 para desktop
+- Generate Mip Maps: Off para UI, On para sprites en mundo
+- Wrap Mode: Clamp
+- Max Size: 2048 (4096 solo para fondos)
+
+11.3 Animator Controllers por mascota
+---------------------------------------
+[Animator Controller: Foxy_AnimatorController]
+States:
+  - Idle (default) -> Foxy_Idle.anim (loop)
+  - Reveal -> Foxy_Reveal.anim (loop=false)
+  - Floating -> Foxy_Floating.anim (loop)
+  - Happy -> Foxy_Happy.anim (loop=false)
+Parameters:
+  - Trigger: TrigReveal
+  - Trigger: TrigHappy
+  - Bool: IsEquipped
+Transitions:
+  - Any -> Reveal : cuando TrigReveal
+  - Reveal -> Floating : IsEquipped == true (exit time)
+  - Reveal -> Idle : IsEquipped == false (exit time)
+  - Idle -> Floating : IsEquipped == true
+  - Floating -> Idle : IsEquipped == false
+  - Any -> Happy : cuando TrigHappy
+  - Happy -> Floating : exit time + IsEquipped
+
+11.4 Animator de la maquina gachapon
+--------------------------------------
+[Animator Controller: GachaMachine_AnimatorController]
+States:
+  - Idle (default) -> GachaMachine_Idle.anim (loop)
+  - Spinning -> GachaMachine_Spin.anim (loop=false)
+  - Cooldown -> GachaMachine_Cooldown.anim (loop=false, 0.6s)
+Parameters:
+  - Trigger: TrigSpin
+  - Float: SpinDuration
+Transitions:
+  - Idle -> Spinning : TrigSpin
+  - Spinning -> Cooldown : exit time
+  - Cooldown -> Idle : exit time
+
+================================================================================
+12. EFECTOS DE PARTICULAS POR RAREZA
+================================================================================
+
+Parametro        | Comun          | Raro           | Epico           | Legendario
+-----------------|----------------|----------------|-----------------|------------------
+Duration         | 0.8 s          | 1.2 s          | 1.8 s           | 3.5 s
+Looping          | No             | No             | No              | Si (durante reveal)
+Start Lifetime   | 0.4 s          | 0.8 s          | 1.0 s           | 1.8 s
+Start Speed      | 1.5            | 2.5            | 3.0             | 4.5
+Start Size       | 0.15           | 0.2            | 0.3             | 0.5
+Start Color      | Gris claro     | Verde esmeralda | Violeta neon   | Dorado degradado
+Emission Rate    | 12 burst       | 30 burst       | 60 burst        | Stream 100/s + burst 200
+Shape            | Cone 25        | Sphere 0.5     | Donut 0.8       | Donut 1.2 + Sphere 0.5
+Trails           | Off            | Off            | On (alpha 0.3)  | On (alpha 0.8)
+
+Todos usan shader URP/Particles/Unlit con Blend Mode = Additive.
+
+12.1 Efecto 'aura' para mascotas Legendarias equipadas
+--------------------------------------------------------
+Cuando Aurora esta equipada, se instancia un GameObject hijo con un Particle System de
+bucle continuo (Looping = true, Emission Rate = 8/s, Start Lifetime 1.2 s, Start Size 0.1).
+
+12.3 Camera shake para Epico/Legendario
+-----------------------------------------
+Con Cinemachine: CinemachineImpulseSource en el objeto que dispara el evento.
+- Epico: GenerateImpulse(0.6f)
+- Legendario: GenerateImpulse(1.0f)
+La camara debe tener CinemachineVirtualCamera con extension CinemachineImpulseListener.
+
+12B. Efectos visuales de UI: glow y shimmer
+--------------------------------------------
+
+12B.1 Glow en marcos de rareza
+ResultCard
+|-- Frame_Glow (Image, mismo sprite, color alpha=0.6, Material UI/Glow_Legendary, escala 1.08)
+`-- Frame (Image normal)
+
+12B.2 Shimmer
+ResultCard_Mascara (RectMask2D)
+|-- Frame_Glow
+|-- Frame
+|-- Shimmer (Image, sprite banda diagonal, alpha 0.4, ancho 30% del frame)
+    se anima localPosition.x desde -frame.width hasta +frame.width en 0.8s
+
+================================================================================
+13. AUDIO Y AUDIOMANAGER
+================================================================================
+
+13.1 Lista completa de sonidos
+--------------------------------
+Categoria | Clave                  | Tipo      | Duracion | Descripcion
+----------|------------------------|-----------|----------|-----------------------------------
+Musica    | mus_hub_loop           | Loop      | 1:30     | Marimba + cuerdas, LA mayor
+Maquina   | sfx_machine_activate   | One-shot  | 0.3 s    | Click mecanico + brillo agudo
+Maquina   | sfx_machine_spin       | Loop      | 1.5 s    | Engranaje rotando
+Maquina   | sfx_capsule_open       | One-shot  | 0.4 s    | Crack + pop con eco
+Reveal    | sfx_reveal_common      | One-shot  | 0.3 s    | Ding suave en SI4
+Reveal    | sfx_reveal_rare        | One-shot  | 0.7 s    | Ding doble con shimmer
+Reveal    | sfx_reveal_epic        | One-shot  | 1.3 s    | Acorde 4 notas con resonancia
+Reveal    | sfx_reveal_legendary   | One-shot  | 3.5 s    | Coro angelical + campana
+Pet       | sfx_pet_equip          | One-shot  | 0.5 s    | Brillo magico en Re5
+Pet       | sfx_pet_happy          | One-shot  | 0.8 s    | Sonido carismatico
+Tienda    | sfx_shop_hover         | One-shot  | 0.1 s    | Click suave
+Tienda    | sfx_shop_click         | One-shot  | 0.15 s   | Click + cha-ching
+Pity      | sfx_pity_unlock        | One-shot  | 0.9 s    | Glitter dorado
+UI        | sfx_ui_hover           | One-shot  | 0.1 s    | Click suave
+UI        | sfx_ui_click           | One-shot  | 0.12 s   | Click confirmacion
+UI        | sfx_ui_close           | One-shot  | 0.2 s    | Click + woosh
+UI        | sfx_ui_error           | One-shot  | 0.3 s    | Buzz negativo
+
+13.2 Audio Mixer
+-----------------
+Asset MasterMixer.mixer con tres grupos: Master, Music, SFX.
+Exponer parametros: Volume_Master, Volume_Music, Volume_SFX.
+Conversion lineal a logaritmica: dB = Mathf.Log10(Mathf.Clamp(x, 0.0001f, 1f)) * 20f
+
+13.3 AudioManager.cs
+---------------------
+using UnityEngine;
+using UnityEngine.Audio;
+using System.Collections.Generic;
+
+public class AudioManager : MonoBehaviour
+{
+    public static AudioManager Instance { get; private set; }
+
+    [Header("Mixer")]
+    public AudioMixerGroup musicGroup;
+    public AudioMixerGroup sfxGroup;
+
+    [Header("Library")]
+    [SerializeField] private List<AudioEntry> sfxLibrary = new();
+    [SerializeField] private AudioClip hubMusic;
+
+    [Header("Pool")]
+    [SerializeField] private int sfxPoolSize = 8;
+
+    private Dictionary<string, AudioClip> _sfxDict;
+    private List<AudioSource> _sfxPool;
+    private AudioSource _musicSource;
+
+    [System.Serializable]
+    public class AudioEntry
+    {
+        public string key;
+        public AudioClip clip;
+        [Range(0f, 1f)] public float volume = 1f;
+        [Range(0.5f, 2f)] public float pitch = 1f;
+    }
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        _sfxDict = new Dictionary<string, AudioClip>();
+        foreach (var e in sfxLibrary)
+            if (!string.IsNullOrEmpty(e.key) && e.clip != null)
+                _sfxDict[e.key] = e.clip;
+
+        _musicSource = gameObject.AddComponent<AudioSource>();
+        _musicSource.outputAudioMixerGroup = musicGroup;
+        _musicSource.loop = true;
+        _musicSource.playOnAwake = false;
+        _musicSource.volume = 0.7f;
+
+        _sfxPool = new List<AudioSource>();
+        for (int i = 0; i < sfxPoolSize; i++)
+        {
+            var src = gameObject.AddComponent<AudioSource>();
+            src.outputAudioMixerGroup = sfxGroup;
+            src.playOnAwake = false;
+            src.loop = false;
+            _sfxPool.Add(src);
+        }
+    }
+
+    public void PlayHubMusic()
+    {
+        if (hubMusic == null) return;
+        _musicSource.clip = hubMusic;
+        _musicSource.Play();
+    }
+
+    public void StopMusic() => _musicSource.Stop();
+
+    public void Play(string key, float volumeScale = 1f, float pitch = 1f)
+    {
+        if (!_sfxDict.TryGetValue(key, out var clip))
+        {
+            Debug.LogWarning($"[AudioManager] Clave SFX no encontrada: {key}");
+            return;
+        }
+        var src = GetFreeSource();
+        src.clip = clip;
+        src.volume = volumeScale;
+        src.pitch = pitch;
+        src.Play();
+    }
+
+    private AudioSource GetFreeSource()
+    {
+        foreach (var s in _sfxPool) if (!s.isPlaying) return s;
+        return _sfxPool[0];
+    }
+
+    public void SetMasterVolume(float linear) => SetMixer("Volume_Master", linear);
+    public void SetMusicVolume(float linear) => SetMixer("Volume_Music", linear);
+    public void SetSfxVolume(float linear) => SetMixer("Volume_SFX", linear);
+
+    private void SetMixer(string param, float linear)
+    {
+        var mixer = musicGroup.audioMixer;
+        float dB = Mathf.Log10(Mathf.Clamp(linear, 0.0001f, 1f)) * 20f;
+        mixer.SetFloat(param, dB);
+    }
+}
+
+================================================================================
+14. ARQUITECTURA DE CODIGO: SCRIPTS Y RESPONSABILIDADES
+================================================================================
+
+14.1 Tabla maestra de scripts
+-------------------------------
+Script                       | Carpeta   | Singleton | Responsabilidad principal
+-----------------------------|-----------|-----------|--------------------------------
+GameBootstrapper.cs          | Core/     | No        | Inicializa servicios
+ServiceLocator.cs            | Core/     | Estatico  | Registro de servicios sin Find
+GachaManager.cs              | Gacha/    | Si        | Logica de tirada y resultado
+GachaDatabase.cs             | Gacha/    | No        | Wrapper sobre GachaPool SO
+GachaResult.cs               | Gacha/    | No        | Estructura de retorno
+PitySystem.cs                | Gacha/    | No        | Contadores de pity
+PlayerInventory.cs           | Inventory/| Si        | Gemas, mascotas, items, pet
+PlayerProfile.cs             | Inventory/| No        | Estadisticas del jugador
+PetController.cs             | Pets/     | No        | Mascota equipada visual
+GachaUIController.cs         | UI/       | No        | Control central de paneles
+RevealAnimationController.cs | UI/       | No        | Animacion de revelado
+ShopManager.cs               | UI/       | No        | Tienda simulada
+CollectionUI.cs              | UI/       | No        | Grilla de coleccion
+CurrencyDisplay.cs           | UI/       | No        | HUD de gemas
+UIAnimator.cs                | UI/       | Estatico  | Helper de tweening
+SaveSystem.cs                | Save/     | Estatico  | Save y Load
+SaveData.cs                  | Save/     | No        | POCO serializable
+AudioManager.cs              | Audio/    | Si        | Musica, SFX, mixer
+WeightedRandom.cs            | Utility/  | No        | Algoritmo de peso acumulado
+Extensions.cs                | Utility/  | No        | Helpers de listas y rng
+
+14.3 SaveData.cs
+-----------------
+using System;
+using System.Collections.Generic;
+
+[Serializable]
+public class SaveData
+{
+    public int gems = 0;
+    public int totalPulls = 0;
+    public int pityLegendaryCounter = 0;
+    public int pityEpicCounter = 0;
+    public string equippedPetId = "";
+    public bool firstLaunch = true;
+    public List<string> ownedPetIds = new List<string>();
+    public List<ItemStack> itemStacks = new List<ItemStack>();
+
+    [Serializable]
+    public class ItemStack
+    {
+        public string itemId;
+        public int quantity;
+    }
+}
+
+14.4 SaveSystem.cs
+-------------------
+using System.IO;
+using UnityEngine;
+
+public static class SaveSystem
+{
+    private const string PREFS_KEY = "SaveData_v1";
+    private static readonly string JSON_PATH =
+        Path.Combine(Application.persistentDataPath, "savedata.json");
+
+    public static SaveData Current { get; private set; } = new SaveData();
+
+    public static void Save()
+    {
+        string json = JsonUtility.ToJson(Current, true);
+        PlayerPrefs.SetString(PREFS_KEY, json);
+        PlayerPrefs.Save();
+        try { File.WriteAllText(JSON_PATH, json); }
+        catch (System.Exception ex)
+        { Debug.LogWarning($"[SaveSystem] No se pudo escribir JSON: {ex.Message}"); }
+        Debug.Log("[SaveSystem] Guardado completo. Gemas=" + Current.gems);
+    }
+
+    public static void Load()
+    {
+        try
+        {
+            string json = null;
+            if (File.Exists(JSON_PATH)) json = File.ReadAllText(JSON_PATH);
+            else if (PlayerPrefs.HasKey(PREFS_KEY)) json = PlayerPrefs.GetString(PREFS_KEY);
+
+            if (!string.IsNullOrEmpty(json))
+            {
+                Current = JsonUtility.FromJson<SaveData>(json);
+                if (Current == null) Current = new SaveData();
+            }
+            else { Current = new SaveData(); }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("[SaveSystem] Error al cargar: " + ex.Message);
+            Current = new SaveData();
+        }
+        Debug.Log("[SaveSystem] Carga completada. Gemas=" + Current.gems);
+    }
+
+    public static void Reset() { Current = new SaveData(); Save(); }
+}
+
+NOTA: Anadir SaveSystem.Save() tras tirada, compra, equipar mascota,
+OnApplicationPause(true), OnApplicationQuit.
+
+14.5 PlayerInventory.cs
+-------------------------
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerInventory : MonoBehaviour
+{
+    public static PlayerInventory Instance { get; private set; }
+
+    public event Action<int> OnGemsChanged;
+    public event Action<PetData> OnPetObtained;
+    public event Action<GachaItemData> OnItemObtained;
+    public event Action<PetData> OnPetEquipped;
+
+    [SerializeField] private GachaDatabase database;
+
+    public int Gems
+    {
+        get => SaveSystem.Current.gems;
+        private set
+        {
+            SaveSystem.Current.gems = Mathf.Max(0, value);
+            OnGemsChanged?.Invoke(SaveSystem.Current.gems);
+        }
+    }
+
+    public PetData EquippedPet { get; private set; }
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    void Start()
+    {
+        if (!string.IsNullOrEmpty(SaveSystem.Current.equippedPetId))
+        {
+            EquippedPet = database.GetPetById(SaveSystem.Current.equippedPetId);
+            if (EquippedPet != null) OnPetEquipped?.Invoke(EquippedPet);
+        }
+    }
+
+    public bool TrySpendGems(int amount)
+    {
+        if (Gems < amount) { AudioManager.Instance.Play("sfx_ui_error"); return false; }
+        Gems -= amount;
+        SaveSystem.Save();
+        return true;
+    }
+
+    public void AddGems(int amount)
+    {
+        if (amount <= 0) return;
+        Gems += amount;
+        SaveSystem.Save();
+    }
+
+    public bool HasPet(string petId) => SaveSystem.Current.ownedPetIds.Contains(petId);
+
+    public void GrantPet(PetData pet, out int gemsEquivalent)
+    {
+        gemsEquivalent = 0;
+        if (pet == null) return;
+        if (HasPet(pet.id))
+        {
+            gemsEquivalent = pet.duplicateGemValue;
+            AddGems(gemsEquivalent);
+            return;
+        }
+        SaveSystem.Current.ownedPetIds.Add(pet.id);
+        OnPetObtained?.Invoke(pet);
+        SaveSystem.Save();
+    }
+
+    public void GrantItem(GachaItemData item, int qty = 1)
+    {
+        if (item == null) return;
+        var stack = SaveSystem.Current.itemStacks.Find(s => s.itemId == item.id);
+        if (stack == null)
+        {
+            stack = new SaveData.ItemStack { itemId = item.id, quantity = 0 };
+            SaveSystem.Current.itemStacks.Add(stack);
+        }
+        stack.quantity += qty;
+        OnItemObtained?.Invoke(item);
+        SaveSystem.Save();
+    }
+
+    public void EquipPet(PetData pet)
+    {
+        if (pet == null || !HasPet(pet.id)) return;
+        EquippedPet = pet;
+        SaveSystem.Current.equippedPetId = pet.id;
+        OnPetEquipped?.Invoke(pet);
+        SaveSystem.Save();
+        AudioManager.Instance.Play("sfx_pet_equip");
+    }
+
+    public int GetItemQty(string itemId)
+    {
+        var st = SaveSystem.Current.itemStacks.Find(s => s.itemId == itemId);
+        return st?.quantity ?? 0;
+    }
+}
+
+14.6 PlayerProfile.cs
+-----------------------
+using UnityEngine;
+
+public static class PlayerProfile
+{
+    public static int TotalPulls => SaveSystem.Current.totalPulls;
+    public static int PityLegendary => SaveSystem.Current.pityLegendaryCounter;
+    public static int PityEpic => SaveSystem.Current.pityEpicCounter;
+
+    public static void RegisterPull(int n = 1)
+    {
+        SaveSystem.Current.totalPulls += n;
+    }
+}
+
+================================================================================
+15. SCRIPTABLEOBJECTS: PetData, GachaItemData y GachaPool
+================================================================================
+
+15.1 PetData.cs
+----------------
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "AlRescate/Pet Data", fileName = "Pet_New")]
+public class PetData : ScriptableObject
+{
+    [Header("Identificacion")]
+    public string id;
+    public string displayName;
+    [TextArea(2, 5)] public string description;
+
+    [Header("Rareza")]
+    public Rarity rarity;
+
+    [Header("Visuales")]
+    public Sprite iconCollection;
+    public Sprite iconLarge;
+    public GameObject petPrefab;
+    public RuntimeAnimatorController animatorController;
+
+    [Header("Powerup pasivo")]
+    public PowerupType powerupType;
+    public float powerupValue;
+    [TextArea(1, 3)] public string powerupDescription;
+
+    [Header("Recompensas")]
+    public int duplicateGemValue = 100;
+}
+
+public enum Rarity { Common, Rare, Epic, Legendary }
+public enum PowerupType
+{
+    MoveSpeed, AttackRange, HealthRegen, CooldownReduction, DamageResistance
+}
+
+15.2 GachaItemData.cs
+----------------------
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "AlRescate/Gacha Item Data", fileName = "Item_New")]
+public class GachaItemData : ScriptableObject
+{
+    [Header("Identificacion")]
+    public string id;
+    public string displayName;
+    [TextArea(2, 4)] public string description;
+
+    [Header("Rareza")]
+    public Rarity rarity;
+
+    [Header("Visuales")]
+    public Sprite icon;
+
+    [Header("Efecto")]
+    public ItemEffectType effectType;
+    public float duration;
+    public float magnitude;
+
+    [Header("Comportamiento al duplicar")]
+    public int stackable = 1;
+}
+
+public enum ItemEffectType
+{
+    InstantHeal, SmokeBomb, GemMultiplier, ReflectShield,
+    Adrenaline, HealAura, Invincibility, FreeGachaPull
+}
+
+15.3 GachaPool.cs
+------------------
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "AlRescate/Gacha Pool", fileName = "Pool_New")]
+public class GachaPool : ScriptableObject
+{
+    [Header("Costos")]
+    public int singlePullCost = 160;
+    public int multiPullCost = 1440;
+
+    [Header("Probabilidades por rareza")]
+    [Range(0,1)] public float pCommon = 0.783f;
+    [Range(0,1)] public float pRare = 0.150f;
+    [Range(0,1)] public float pEpic = 0.061f;
+    [Range(0,1)] public float pLegendary = 0.006f;
+
+    [Header("Pity")]
+    public int softPityStart = 75;
+    public int hardPity = 90;
+    public float softPityIncrement = 0.06f;
+    public int epicPityThreshold = 10;
+
+    [Header("Sub-pool")]
+    [Range(0,1)] public float petChance = 0.30f;
+
+    [Header("Contenido por rareza")]
+    public List<PetData> petsCommon = new();
+    public List<PetData> petsRare = new();
+    public List<PetData> petsEpic = new();
+    public List<PetData> petsLegendary = new();
+    public List<GachaItemData> itemsCommon = new();
+    public List<GachaItemData> itemsRare = new();
+    public List<GachaItemData> itemsEpic = new();
+    public List<GachaItemData> itemsLegendary = new();
+
+    public List<PetData> GetPetsByRarity(Rarity r) => r switch
+    {
+        Rarity.Common => petsCommon,
+        Rarity.Rare => petsRare,
+        Rarity.Epic => petsEpic,
+        Rarity.Legendary => petsLegendary,
+        _ => petsCommon
+    };
+
+    public List<GachaItemData> GetItemsByRarity(Rarity r) => r switch
+    {
+        Rarity.Common => itemsCommon,
+        Rarity.Rare => itemsRare,
+        Rarity.Epic => itemsEpic,
+        Rarity.Legendary => itemsLegendary,
+        _ => itemsCommon
+    };
+}
+
+15.4 Crear los assets en Unity
+--------------------------------
+1. Crear 5 mascotas: clic derecho en _Project/Data/Pets > Create > AlRescate > Pet Data.
+2. Crear 8 items en _Project/Data/Items.
+3. Crear GachaPool: _Project/Data/Pools > Create > AlRescate > Gacha Pool.
+4. Arrastrar cada PetData/GachaItemData a la lista correspondiente segun rareza.
+5. Verificar que pCommon + pRare + pEpic + pLegendary == 1.0.
+
+================================================================================
+16. ALGORITMO DE PROBABILIDADES (PESO ACUMULADO + PITY)
+================================================================================
+
+16.1 Concepto: peso acumulado (weighted random)
+-------------------------------------------------
+Dadas N opciones con pesos w[i], W = sum(w[i]).
+Para escoger:
+1. Generar r = Random.Range(0f, W)
+2. Recorrer opciones acumulando peso: cumulative += w[i].
+   La primera opcion cuyo cumulative >= r es la elegida.
+
+16.2 Pseudocodigo del algoritmo de tirada
+------------------------------------------
+funcion EjecutarTirada():
+    n = pityLegendaryCounter
+    m = pityEpicCounter
+
+    // 1. Calcular probabilidad efectiva de Legendario
+    if (n + 1) >= hardPity:
+        rareza = Legendario
+    else:
+        pLeg = pBaseLegendario
+        if (n + 1) > softPityInicio:
+            pLeg = min(1, pBaseLegendario + ((n+1) - softPityInicio) * softPityIncrement)
+
+        // 2. Construir tabla de pesos ajustada
+        delta = pLeg - pBaseLegendario
+        sumaResto = pCommon + pRare + pEpic
+        factor = (sumaResto - delta) / sumaResto
+        pesosAjustados = {
+            Comun: pCommon * factor,
+            Raro: pRare * factor,
+            Epico: pEpic * factor,
+            Legendario: pLeg
+        }
+        rareza = WeightedRandom(pesosAjustados)
+
+    // 3. Aplicar pity de Epico
+    if (m + 1) >= epicPityThreshold and rareza in {Comun, Raro}:
+        rareza = Epico
+
+    // 4. Determinar si es mascota o item
+    esMascota = Random.value < petChance
+
+    // 5. Escoger contenido concreto
+    contenido = ListaPorRareza(rareza, esMascota).Random()
+
+    // 6. Actualizar contadores
+    if rareza == Legendario: pityLegendaryCounter = 0
+    else: pityLegendaryCounter += 1
+
+    if rareza == Epico or rareza == Legendario: pityEpicCounter = 0
+    else: pityEpicCounter += 1
+
+    return GachaResult { rareza, contenido, esMascota }
+
+16.3 WeightedRandom.cs
+-----------------------
+using System.Collections.Generic;
+using UnityEngine;
+
+public static class WeightedRandom
+{
+    public static int PickIndex(IList<float> weights)
+    {
+        float total = 0f;
+        for (int i = 0; i < weights.Count; i++) total += weights[i];
+        float r = Random.value * total;
+        float cumulative = 0f;
+        for (int i = 0; i < weights.Count; i++)
+        {
+            cumulative += weights[i];
+            if (r <= cumulative) return i;
+        }
+        return weights.Count - 1;
+    }
+
+    public static T Pick<T>(IList<T> options, IList<float> weights)
+    {
+        int idx = PickIndex(weights);
+        return options[idx];
+    }
+}
+
+16.4 GachaResult.cs
+--------------------
+using UnityEngine;
+
+public struct GachaResult
+{
+    public Rarity rarity;
+    public bool isPet;
+    public PetData pet;
+    public GachaItemData item;
+    public int gemsAwarded;
+    public bool isDuplicate;
+}
+
+16.5 PitySystem.cs
+-------------------
+using UnityEngine;
+
+public class PitySystem
+{
+    private readonly GachaPool _pool;
+    public PitySystem(GachaPool pool) { _pool = pool; }
+
+    public int LegendaryCounter
+    {
+        get => SaveSystem.Current.pityLegendaryCounter;
+        set => SaveSystem.Current.pityLegendaryCounter = value;
+    }
+
+    public int EpicCounter
+    {
+        get => SaveSystem.Current.pityEpicCounter;
+        set => SaveSystem.Current.pityEpicCounter = value;
+    }
+
+    public float GetEffectiveLegendaryChance()
+    {
+        int n = LegendaryCounter;
+        if ((n + 1) >= _pool.hardPity) return 1f;
+        if ((n + 1) > _pool.softPityStart)
+        {
+            float extra = ((n + 1) - _pool.softPityStart) * _pool.softPityIncrement;
+            return Mathf.Min(1f, _pool.pLegendary + extra);
+        }
+        return _pool.pLegendary;
+    }
+
+    public bool ShouldForceEpic() => (EpicCounter + 1) >= _pool.epicPityThreshold;
+
+    public void OnRarityRolled(Rarity r)
+    {
+        if (r == Rarity.Legendary) { LegendaryCounter = 0; EpicCounter = 0; }
+        else if (r == Rarity.Epic) { LegendaryCounter += 1; EpicCounter = 0; }
+        else { LegendaryCounter += 1; EpicCounter += 1; }
+    }
+}
+
+16.6 GachaManager.cs
+---------------------
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GachaManager : MonoBehaviour
+{
+    public static GachaManager Instance { get; private set; }
+
+    [SerializeField] private GachaPool pool;
+    public GachaPool Pool => pool;
+
+    private PitySystem _pity;
+    public event Action<List<GachaResult>> OnPullCompleted;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+        _pity = new PitySystem(pool);
+    }
+
+    public bool TryPullX1(out GachaResult result)
+    {
+        result = default;
+        if (!PlayerInventory.Instance.TrySpendGems(pool.singlePullCost)) return false;
+        result = SinglePull();
+        PlayerProfile.RegisterPull(1);
+        SaveSystem.Save();
+        OnPullCompleted?.Invoke(new List<GachaResult> { result });
+        return true;
+    }
+
+    public bool TryPullX10(out List<GachaResult> results)
+    {
+        results = new List<GachaResult>();
+        if (!PlayerInventory.Instance.TrySpendGems(pool.multiPullCost)) return false;
+        bool anyRareOrAbove = false;
+        for (int i = 0; i < 10; i++)
+        {
+            bool isLast = (i == 9);
+            GachaResult r = SinglePull(forceAtLeastRare: isLast && !anyRareOrAbove);
+            if (r.rarity != Rarity.Common) anyRareOrAbove = true;
+            results.Add(r);
+        }
+        PlayerProfile.RegisterPull(10);
+        SaveSystem.Save();
+        OnPullCompleted?.Invoke(results);
+        return true;
+    }
+
+    private GachaResult SinglePull(bool forceAtLeastRare = false)
+    {
+        Rarity rar;
+        if ((_pity.LegendaryCounter + 1) >= pool.hardPity)
+        {
+            rar = Rarity.Legendary;
+        }
+        else
+        {
+            float pLeg = _pity.GetEffectiveLegendaryChance();
+            float delta = pLeg - pool.pLegendary;
+            float sumaResto = pool.pCommon + pool.pRare + pool.pEpic;
+            float factor = (sumaResto - delta) / sumaResto;
+            float[] weights = new float[]
+            {
+                pool.pCommon * factor, pool.pRare * factor,
+                pool.pEpic * factor, pLeg
+            };
+            int idx = WeightedRandom.PickIndex(weights);
+            rar = (Rarity)idx;
+
+            if (_pity.ShouldForceEpic() && (rar == Rarity.Common || rar == Rarity.Rare))
+                rar = Rarity.Epic;
+            if (forceAtLeastRare && rar == Rarity.Common)
+                rar = Rarity.Rare;
+        }
+
+        _pity.OnRarityRolled(rar);
+
+        bool isPet = UnityEngine.Random.value < pool.petChance;
+        var result = new GachaResult { rarity = rar, isPet = isPet };
+
+        if (isPet)
+        {
+            var list = pool.GetPetsByRarity(rar);
+            if (list == null || list.Count == 0) isPet = false;
+            else
+            {
+                result.pet = list[UnityEngine.Random.Range(0, list.Count)];
+                if (PlayerInventory.Instance.HasPet(result.pet.id))
+                {
+                    result.isDuplicate = true;
+                    result.gemsAwarded = result.pet.duplicateGemValue;
+                }
+                PlayerInventory.Instance.GrantPet(result.pet, out _);
+            }
+        }
+        if (!isPet)
+        {
+            result.isPet = false;
+            var list = pool.GetItemsByRarity(rar);
+            result.item = list[UnityEngine.Random.Range(0, list.Count)];
+            PlayerInventory.Instance.GrantItem(result.item, 1);
+        }
+        return result;
+    }
+}
+
+16.7 GachaDatabase.cs
+----------------------
+using UnityEngine;
+using System.Collections.Generic;
+
+public class GachaDatabase : MonoBehaviour
+{
+    [SerializeField] private GachaPool pool;
+
+    private Dictionary<string, PetData> _petsById;
+    private Dictionary<string, GachaItemData> _itemsById;
+
+    void Awake()
+    {
+        _petsById = new Dictionary<string, PetData>();
+        foreach (var list in new[] { pool.petsCommon, pool.petsRare, pool.petsEpic, pool.petsLegendary })
+            foreach (var p in list)
+                if (p != null && !string.IsNullOrEmpty(p.id)) _petsById[p.id] = p;
+
+        _itemsById = new Dictionary<string, GachaItemData>();
+        foreach (var list in new[] { pool.itemsCommon, pool.itemsRare, pool.itemsEpic, pool.itemsLegendary })
+            foreach (var i in list)
+                if (i != null && !string.IsNullOrEmpty(i.id)) _itemsById[i.id] = i;
+    }
+
+    public PetData GetPetById(string id) => _petsById.TryGetValue(id, out var p) ? p : null;
+    public GachaItemData GetItemById(string id) => _itemsById.TryGetValue(id, out var i) ? i : null;
+    public IEnumerable<PetData> AllPets() => _petsById.Values;
+    public IEnumerable<GachaItemData> AllItems() => _itemsById.Values;
+}
+
+================================================================================
+17. CONTROLADORES DE UI Y LA MASCOTA
+================================================================================
+
+17.1 GachaUIController.cs
+--------------------------
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class GachaUIController : MonoBehaviour
+{
+    [Header("Botones HUD")]
+    public Button btnPullX1;
+    public Button btnPullX10;
+    public Button btnShop;
+    public Button btnCollection;
+    public Button btnOptions;
+
+    [Header("Canvas")]
+    public GameObject canvasResult;
+    public GameObject canvasShop;
+    public GameObject canvasCollection;
+
+    [Header("Anim Controllers")]
+    public RevealAnimationController revealController;
+    public Animator gachaMachineAnimator;
+
+    [Header("Welcome Bonus")]
+    public GameObject welcomePanel;
+    public int welcomeGems = 1600;
+
+    void Start()
+    {
+        btnPullX1.onClick.AddListener(OnPullX1);
+        btnPullX10.onClick.AddListener(OnPullX10);
+        btnShop.onClick.AddListener(() => SetCanvas(canvasShop, true));
+        btnCollection.onClick.AddListener(() => SetCanvas(canvasCollection, true));
+        btnOptions.onClick.AddListener(OnOptionsClicked);
+
+        canvasResult.SetActive(false);
+        canvasShop.SetActive(false);
+        canvasCollection.SetActive(false);
+
+        TryGiveWelcomeBonus();
+        AudioManager.Instance.PlayHubMusic();
+    }
+
+    void TryGiveWelcomeBonus()
+    {
+        if (!SaveSystem.Current.firstLaunch) return;
+        SaveSystem.Current.firstLaunch = false;
+        PlayerInventory.Instance.AddGems(welcomeGems);
+        if (welcomePanel != null) welcomePanel.SetActive(true);
+        SaveSystem.Save();
+    }
+
+    public void SetCanvas(GameObject c, bool active)
+    {
+        c.SetActive(active);
+        AudioManager.Instance.Play(active ? "sfx_ui_click" : "sfx_ui_close");
+    }
+
+    private void OnPullX1()
+    {
+        if (GachaManager.Instance.TryPullX1(out var r))
+        {
+            gachaMachineAnimator.SetTrigger("TrigSpin");
+            StartCoroutine(revealController.PlayX1(r));
+        }
+    }
+
+    private void OnPullX10()
+    {
+        if (GachaManager.Instance.TryPullX10(out var results))
+        {
+            gachaMachineAnimator.SetTrigger("TrigSpin");
+            StartCoroutine(revealController.PlayX10(results));
+        }
+    }
+
+    private void OnOptionsClicked()
+    {
+        AudioManager.Instance.Play("sfx_ui_click");
+    }
+}
+
+17.2 RevealAnimationController.cs
+----------------------------------
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class RevealAnimationController : MonoBehaviour
+{
+    [Header("Refs")]
+    public GameObject canvasResult;
+    public RectTransform resultRoot;
+    public Image beamOfLight;
+    public Transform cardContainer;
+    public GameObject resultCardPrefab;
+    public Button btnPullAgain, btnClose, btnSkip;
+
+    [Header("Particles")]
+    public ParticleSystem fxCommon, fxRare, fxEpic, fxLegendary;
+
+    [Header("Beam colors")]
+    public Color colorBlue = new Color(0.30f, 0.45f, 1f);
+    public Color colorPurple = new Color(0.55f, 0.30f, 1f);
+    public Color colorGold = new Color(1f, 0.85f, 0.10f);
+
+    private bool _skipRequested;
+
+    void Start()
+    {
+        btnSkip.onClick.AddListener(() => _skipRequested = true);
+        btnClose.onClick.AddListener(Close);
+    }
+
+    public IEnumerator PlayX1(GachaResult r)
+    {
+        ClearCards();
+        canvasResult.SetActive(true);
+        SetBeam(r.rarity);
+        yield return AnimateBeam(0.6f);
+        AudioManager.Instance.Play("sfx_capsule_open");
+        yield return RevealCard(r);
+        ShowButtons();
+    }
+
+    public IEnumerator PlayX10(List<GachaResult> results)
+    {
+        ClearCards();
+        canvasResult.SetActive(true);
+        Rarity max = Rarity.Common;
+        foreach (var rr in results) if (rr.rarity > max) max = rr.rarity;
+        SetBeam(max);
+        yield return AnimateBeam(1.2f);
+        AudioManager.Instance.Play("sfx_capsule_open");
+        btnSkip.gameObject.SetActive(true);
+        _skipRequested = false;
+        foreach (var rr in results)
+        {
+            yield return RevealCard(rr);
+            if (_skipRequested) break;
+        }
+        if (_skipRequested) ShowAllCards(results);
+        btnSkip.gameObject.SetActive(false);
+        ShowButtons();
+    }
+
+    private IEnumerator RevealCard(GachaResult r)
+    {
+        var card = Instantiate(resultCardPrefab, cardContainer);
+        var view = card.GetComponent<ResultCardView>();
+        view.Setup(r);
+        PlayParticleByRarity(r.rarity);
+        AudioManager.Instance.Play(SfxByRarity(r.rarity));
+        yield return new WaitForSeconds(DurationByRarity(r.rarity));
+    }
+
+    private void SetBeam(Rarity max)
+    {
+        if (beamOfLight == null) return;
+        beamOfLight.color = max == Rarity.Legendary ? colorGold :
+                            max == Rarity.Epic ? colorPurple : colorBlue;
+    }
+
+    private IEnumerator AnimateBeam(float duration)
+    {
+        beamOfLight.gameObject.SetActive(true);
+        Vector3 from = new Vector3(1f, 0f, 1f);
+        Vector3 to = new Vector3(1f, 1f, 1f);
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            beamOfLight.rectTransform.localScale = Vector3.Lerp(from, to, t / duration);
+            yield return null;
+        }
+        beamOfLight.rectTransform.localScale = to;
+    }
+
+    private void PlayParticleByRarity(Rarity r)
+    {
+        switch (r)
+        {
+            case Rarity.Common: fxCommon.Play(); break;
+            case Rarity.Rare: fxRare.Play(); break;
+            case Rarity.Epic: fxEpic.Play(); break;
+            case Rarity.Legendary: fxLegendary.Play(); break;
+        }
+    }
+
+    private string SfxByRarity(Rarity r) => r switch
+    {
+        Rarity.Common => "sfx_reveal_common",
+        Rarity.Rare => "sfx_reveal_rare",
+        Rarity.Epic => "sfx_reveal_epic",
+        Rarity.Legendary => "sfx_reveal_legendary",
+        _ => "sfx_reveal_common"
+    };
+
+    private float DurationByRarity(Rarity r) => r switch
+    {
+        Rarity.Common => 0.5f, Rarity.Rare => 1.0f,
+        Rarity.Epic => 1.6f, Rarity.Legendary => 3.5f, _ => 0.5f
+    };
+
+    private void ClearCards()
+    {
+        for (int i = cardContainer.childCount - 1; i >= 0; i--)
+            Destroy(cardContainer.GetChild(i).gameObject);
+        beamOfLight.rectTransform.localScale = new Vector3(1f, 0f, 1f);
+        beamOfLight.gameObject.SetActive(false);
+    }
+
+    private void ShowAllCards(List<GachaResult> results)
+    {
+        ClearCards();
+        foreach (var r in results)
+        {
+            var card = Instantiate(resultCardPrefab, cardContainer);
+            card.GetComponent<ResultCardView>().Setup(r);
+        }
+    }
+
+    private void ShowButtons()
+    {
+        btnPullAgain.gameObject.SetActive(true);
+        btnClose.gameObject.SetActive(true);
+    }
+
+    private void Close()
+    {
+        canvasResult.SetActive(false);
+        AudioManager.Instance.Play("sfx_ui_close");
+    }
+}
+
+17.3 ResultCardView.cs
+-----------------------
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class ResultCardView : MonoBehaviour
+{
+    public Image frameImage;
+    public Image artworkImage;
+    public TextMeshProUGUI nameText;
+    public TextMeshProUGUI rarityText;
+    public Sprite frameCommon, frameRare, frameEpic, frameLegendary;
+    public Color colCommon = Color.gray;
+    public Color colRare = new Color(0.10f, 0.7f, 0.45f);
+    public Color colEpic = new Color(0.55f, 0.30f, 1f);
+    public Color colLegendary = new Color(1f, 0.85f, 0.10f);
+
+    public void Setup(GachaResult r)
+    {
+        if (r.isPet)
+        {
+            artworkImage.sprite = r.pet.iconLarge;
+            nameText.text = r.pet.displayName + (r.isDuplicate ? $" (+{r.gemsAwarded} Gemas)" : "");
+        }
+        else
+        {
+            artworkImage.sprite = r.item.icon;
+            nameText.text = r.item.displayName;
+        }
+        rarityText.text = r.rarity.ToString().ToUpper();
+        rarityText.color = ColorByRarity(r.rarity);
+        frameImage.sprite = FrameByRarity(r.rarity);
+    }
+
+    private Color ColorByRarity(Rarity r) => r switch
+    {
+        Rarity.Common => colCommon, Rarity.Rare => colRare,
+        Rarity.Epic => colEpic, Rarity.Legendary => colLegendary, _ => colCommon
+    };
+
+    private Sprite FrameByRarity(Rarity r) => r switch
+    {
+        Rarity.Common => frameCommon, Rarity.Rare => frameRare,
+        Rarity.Epic => frameEpic, Rarity.Legendary => frameLegendary, _ => frameCommon
+    };
+}
+
+17.4 ShopManager.cs
+--------------------
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class ShopManager : MonoBehaviour
+{
+    [System.Serializable]
+    public class GemPackage
+    {
+        public string id;
+        public int gems;
+        public float priceMXN;
+        public string label;
+        public string bonusText;
+    }
+
+    [Header("Packages")]
+    public List<GemPackage> packages;
+
+    [Header("UI")]
+    public Transform packageGrid;
+    public GameObject packageCardPrefab;
+    public Button btnClose;
+
+    void Start()
+    {
+        if (btnClose != null) btnClose.onClick.AddListener(Close);
+        BuildList();
+    }
+
+    void BuildList()
+    {
+        for (int i = packageGrid.childCount - 1; i >= 0; i--)
+            Destroy(packageGrid.GetChild(i).gameObject);
+        foreach (var pkg in packages)
+        {
+            var go = Instantiate(packageCardPrefab, packageGrid);
+            go.GetComponent<GemPackageCard>().Setup(pkg, OnBuy);
+        }
+    }
+
+    public void OnBuy(GemPackage pkg)
+    {
+        Debug.Log($"[SHOP] El jugador intento comprar {pkg.gems} Gemas por ${pkg.priceMXN} MXN. " +
+                  "Aqui se integraria el sistema de pago real con la pasarela de Cruz Roja.");
+        AudioManager.Instance.Play("sfx_shop_click");
+    }
+
+    public void Close() { gameObject.SetActive(false); AudioManager.Instance.Play("sfx_ui_close"); }
+}
+
+public class GemPackageCard : MonoBehaviour
+{
+    public TextMeshProUGUI gemsText, priceText, bonusText;
+    public Button buyButton;
+
+    public void Setup(ShopManager.GemPackage pkg, System.Action<ShopManager.GemPackage> onBuy)
+    {
+        gemsText.text = pkg.gems.ToString("N0") + " Gemas";
+        priceText.text = "$" + pkg.priceMXN.ToString("N0") + " MXN";
+        bonusText.text = pkg.bonusText;
+        buyButton.onClick.RemoveAllListeners();
+        buyButton.onClick.AddListener(() => onBuy(pkg));
+    }
+}
+
+17.5 CollectionUI.cs
+---------------------
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class CollectionUI : MonoBehaviour
+{
+    [SerializeField] private GachaDatabase database;
+    [SerializeField] private Transform gridContent;
+    [SerializeField] private GameObject cellPrefab;
+    [SerializeField] private CollectionDetailView detailView;
+
+    [Header("Filters")]
+    public Toggle togglePets, toggleItems;
+    public Toggle toggleCommon, toggleRare, toggleEpic, toggleLegendary;
+
+    void OnEnable() { Rebuild(); }
+
+    public void Rebuild()
+    {
+        for (int i = gridContent.childCount - 1; i >= 0; i--)
+            Destroy(gridContent.GetChild(i).gameObject);
+
+        var inv = PlayerInventory.Instance;
+        bool showPets = togglePets.isOn || (!togglePets.isOn && !toggleItems.isOn);
+        bool showItems = toggleItems.isOn || (!togglePets.isOn && !toggleItems.isOn);
+
+        if (showPets)
+            foreach (var p in database.AllPets())
+                if (PassesRarityFilter(p.rarity)) AddCellPet(p, inv.HasPet(p.id));
+
+        if (showItems)
+            foreach (var i in database.AllItems())
+                if (PassesRarityFilter(i.rarity)) AddCellItem(i, inv.GetItemQty(i.id));
+    }
+
+    private bool PassesRarityFilter(Rarity r)
+    {
+        bool any = toggleCommon.isOn || toggleRare.isOn || toggleEpic.isOn || toggleLegendary.isOn;
+        if (!any) return true;
+        return (r == Rarity.Common && toggleCommon.isOn) ||
+               (r == Rarity.Rare && toggleRare.isOn) ||
+               (r == Rarity.Epic && toggleEpic.isOn) ||
+               (r == Rarity.Legendary && toggleLegendary.isOn);
+    }
+
+    private void AddCellPet(PetData p, bool owned)
+    {
+        var go = Instantiate(cellPrefab, gridContent);
+        go.GetComponent<CollectionCell>().SetPet(p, owned, () => detailView.ShowPet(p, owned));
+    }
+
+    private void AddCellItem(GachaItemData i, int qty)
+    {
+        var go = Instantiate(cellPrefab, gridContent);
+        go.GetComponent<CollectionCell>().SetItem(i, qty, () => detailView.ShowItem(i, qty));
+    }
+}
+
+17.6 CollectionCell.cs, CollectionDetailView.cs y RarityPalette
+-----------------------------------------------------------------
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using System;
+
+public class CollectionCell : MonoBehaviour
+{
+    public Image artwork, frame;
+    public TextMeshProUGUI label;
+    public Button button;
+    public GameObject silhouetteOverlay;
+
+    public void SetPet(PetData p, bool owned, Action onClick)
+    {
+        artwork.sprite = p.iconCollection;
+        artwork.color = owned ? Color.white : Color.black;
+        silhouetteOverlay.SetActive(!owned);
+        label.text = owned ? p.displayName : "???";
+        frame.color = RarityPalette.For(p.rarity);
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => onClick?.Invoke());
+    }
+
+    public void SetItem(GachaItemData i, int qty, Action onClick)
+    {
+        artwork.sprite = i.icon;
+        artwork.color = Color.white;
+        silhouetteOverlay.SetActive(qty <= 0);
+        label.text = qty > 0 ? $"{i.displayName} x{qty}" : "???";
+        frame.color = RarityPalette.For(i.rarity);
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => onClick?.Invoke());
+    }
+}
+
+public class CollectionDetailView : MonoBehaviour
+{
+    public Image bigArt;
+    public TextMeshProUGUI titleText, rarityText, descriptionText, powerupText;
+    public Button btnEquip;
+
+    public void ShowPet(PetData p, bool owned)
+    {
+        gameObject.SetActive(true);
+        bigArt.sprite = p.iconLarge;
+        titleText.text = owned ? p.displayName : "???";
+        rarityText.text = p.rarity.ToString();
+        rarityText.color = RarityPalette.For(p.rarity);
+        descriptionText.text = owned ? p.description : "Sigue jugando para descubrir esta mascota.";
+        powerupText.text = owned ? p.powerupDescription : "";
+        btnEquip.gameObject.SetActive(owned);
+        btnEquip.onClick.RemoveAllListeners();
+        btnEquip.onClick.AddListener(() => PlayerInventory.Instance.EquipPet(p));
+    }
+
+    public void ShowItem(GachaItemData i, int qty)
+    {
+        gameObject.SetActive(true);
+        bigArt.sprite = i.icon;
+        titleText.text = qty > 0 ? i.displayName : "???";
+        rarityText.text = i.rarity.ToString();
+        rarityText.color = RarityPalette.For(i.rarity);
+        descriptionText.text = qty > 0 ? i.description : "Aun no has obtenido este item.";
+        powerupText.text = $"Cantidad: {qty}";
+        btnEquip.gameObject.SetActive(false);
+    }
+}
+
+public static class RarityPalette
+{
+    public static Color For(Rarity r) => r switch
+    {
+        Rarity.Common => new Color(0.61f, 0.64f, 0.69f),
+        Rarity.Rare => new Color(0.06f, 0.73f, 0.51f),
+        Rarity.Epic => new Color(0.55f, 0.36f, 0.96f),
+        Rarity.Legendary => new Color(0.96f, 0.62f, 0.04f),
+        _ => Color.white
+    };
+}
+
+17.7 CurrencyDisplay.cs
+------------------------
+using UnityEngine;
+using TMPro;
+
+public class CurrencyDisplay : MonoBehaviour
+{
+    public TextMeshProUGUI gemText;
+    private int _displayValue;
+
+    void OnEnable()
+    {
+        if (PlayerInventory.Instance != null)
+        {
+            PlayerInventory.Instance.OnGemsChanged += OnGemsChanged;
+            _displayValue = PlayerInventory.Instance.Gems;
+            gemText.text = _displayValue.ToString("N0");
+        }
+    }
+
+    void OnDisable()
+    {
+        if (PlayerInventory.Instance != null)
+            PlayerInventory.Instance.OnGemsChanged -= OnGemsChanged;
+    }
+
+    private void OnGemsChanged(int newValue)
+    {
+        StopAllCoroutines();
+        StartCoroutine(AnimateTo(newValue));
+    }
+
+    private System.Collections.IEnumerator AnimateTo(int target)
+    {
+        float t = 0f, duration = 0.4f;
+        int from = _displayValue;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            int v = Mathf.RoundToInt(Mathf.Lerp(from, target, t / duration));
+            gemText.text = v.ToString("N0");
+            yield return null;
+        }
+        _displayValue = target;
+        gemText.text = target.ToString("N0");
+    }
+}
+
+17.8 PetController.cs
+----------------------
+using UnityEngine;
+
+public class PetController : MonoBehaviour
+{
+    [SerializeField] private Transform spawnPoint;
+    [SerializeField] private float floatAmplitude = 0.15f;
+    [SerializeField] private float floatFrequency = 1.0f;
+
+    private GameObject _instance;
+    private Animator _animator;
+
+    void OnEnable()
+    {
+        if (PlayerInventory.Instance != null)
+            PlayerInventory.Instance.OnPetEquipped += SpawnPet;
+        if (PlayerInventory.Instance != null && PlayerInventory.Instance.EquippedPet != null)
+            SpawnPet(PlayerInventory.Instance.EquippedPet);
+    }
+
+    void OnDisable()
+    {
+        if (PlayerInventory.Instance != null)
+            PlayerInventory.Instance.OnPetEquipped -= SpawnPet;
+    }
+
+    void SpawnPet(PetData pet)
+    {
+        if (_instance != null) Destroy(_instance);
+        if (pet == null || pet.petPrefab == null) return;
+        _instance = Instantiate(pet.petPrefab, spawnPoint.position, Quaternion.identity, spawnPoint);
+        _animator = _instance.GetComponentInChildren<Animator>();
+        if (_animator != null && pet.animatorController != null)
+            _animator.runtimeAnimatorController = pet.animatorController;
+        if (_animator != null) _animator.SetBool("IsEquipped", true);
+    }
+
+    void Update()
+    {
+        if (_instance == null) return;
+        float y = Mathf.Sin(Time.time * floatFrequency * Mathf.PI * 2f) * floatAmplitude;
+        _instance.transform.localPosition = new Vector3(0f, y, 0f);
+    }
+}
+
+17.9 UIAnimator.cs (helper sin DOTween)
+----------------------------------------
+using System.Collections;
+using UnityEngine;
+
+public static class UIAnimator
+{
+    public static IEnumerator FadeIn(CanvasGroup cg, float duration = 0.3f)
+    {
+        cg.alpha = 0f;
+        cg.gameObject.SetActive(true);
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Clamp01(t / duration);
+            yield return null;
+        }
+        cg.alpha = 1f;
+    }
+
+    public static IEnumerator FadeOut(CanvasGroup cg, float duration = 0.2f, bool deactivateAtEnd = true)
+    {
+        float t = 0f, from = cg.alpha;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(from, 0f, t / duration);
+            yield return null;
+        }
+        cg.alpha = 0f;
+        if (deactivateAtEnd) cg.gameObject.SetActive(false);
+    }
+
+    public static IEnumerator ScalePop(RectTransform rt, float duration = 0.35f)
+    {
+        Vector3 from = Vector3.one * 0.6f;
+        Vector3 to = Vector3.one;
+        rt.localScale = from;
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float p = t / duration;
+            float c1 = 1.70158f, c3 = c1 + 1f;
+            float e = 1f + c3 * Mathf.Pow(p - 1, 3) + c1 * Mathf.Pow(p - 1, 2);
+            rt.localScale = Vector3.LerpUnclamped(from, to, e);
+            yield return null;
+        }
+        rt.localScale = to;
+    }
+}
+
+================================================================================
+18. CORE: BOOTSTRAP, SERVICELOCATOR Y MAINMENU
+================================================================================
+
+18.1 GameBootstrapper.cs
+-------------------------
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class GameBootstrapper : MonoBehaviour
+{
+    [SerializeField] private string sceneToLoad = "00_MainMenu";
+
+    void Awake() { SaveSystem.Load(); }
+    void Start() { SceneManager.LoadScene(sceneToLoad); }
+}
+
+Crear escena 99_Bootstrap con un GameObject vacio con este script. Build index: 0.
+
+18.2 ServiceLocator.cs
+-----------------------
+using System;
+using System.Collections.Generic;
+
+public static class ServiceLocator
+{
+    private static readonly Dictionary<Type, object> _map = new();
+
+    public static void Register<T>(T service) => _map[typeof(T)] = service;
+    public static T Get<T>() => _map.TryGetValue(typeof(T), out var s) ? (T)s : default;
+    public static bool Has<T>() => _map.ContainsKey(typeof(T));
+}
+
+18.3 MainMenuController.cs
+---------------------------
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class MainMenuController : MonoBehaviour
+{
+    public Button btnPlay, btnCollection, btnOptions, btnCredits, btnQuit;
+
+    void Start()
+    {
+        btnPlay.onClick.AddListener(() => SceneManager.LoadScene("01_GachaHub"));
+        btnCollection.onClick.AddListener(() => {
+            PlayerPrefs.SetInt("OpenCollectionOnStart", 1);
+            SceneManager.LoadScene("01_GachaHub");
+        });
+        btnOptions.onClick.AddListener(() => Debug.Log("Opciones (placeholder)"));
+        btnCredits.onClick.AddListener(() => Debug.Log("Creditos (placeholder)"));
+        btnQuit.onClick.AddListener(() => {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        });
+    }
+}
+
+NOTA: Build Settings orden de escenas: 0: 99_Bootstrap, 1: 00_MainMenu, 2: 01_GachaHub.
+
+================================================================================
+19. ROADMAP DE IMPLEMENTACION (20 ETAPAS)
+================================================================================
+
+ETAPA 1 - Configuracion del proyecto Unity
+-------------------------------------------
+Acciones:
+1. Crear proyecto con plantilla 2D URP (capitulo 2.1).
+2. Verificar URP 2D y crear Renderer 2D si no existe (2.2).
+3. Instalar paquetes obligatorios (2.3).
+4. Activar New Input System en Player Settings.
+5. Configurar Color Space = Linear, Auto Graphics API y Sorting Layers.
+
+Verificacion: Editor sin errores, consola limpia, Sorting Layers existentes,
+New Input System activo.
+
+ETAPA 2 - Estructura de carpetas
+----------------------------------
+Acciones:
+1. Crear todas las carpetas listadas en capitulo 3.
+2. Anadir .gitignore estandar de Unity.
+3. Primer commit del repositorio.
+
+Verificacion: Las carpetas existen exactamente como en el arbol del capitulo 3.
+
+ETAPA 3 - ScriptableObjects y catalogo de contenido
+-----------------------------------------------------
+Acciones:
+1. Crear PetData.cs, GachaItemData.cs, GachaPool.cs (capitulo 15).
+2. Crear assets: Pet_Foxy, Pet_Drako, Pet_Lumi, Pet_Pico, Pet_Aurora.
+3. Crear 8 items consumibles.
+4. Crear MainGachaPool y arrastrar contenido a listas por rareza.
+5. Verificar que pCommon + pRare + pEpic + pLegendary == 1.0.
+
+Verificacion: Inspector del MainGachaPool muestra todo asignado correctamente.
+
+ETAPA 4 - SaveSystem y SaveData
+---------------------------------
+Acciones:
+1. Crear SaveData.cs y SaveSystem.cs (capitulo 14.3-14.4).
+2. Probar Save() y Load() en escena Sandbox.
+3. Confirmar existencia de savedata.json en persistentDataPath.
+
+Verificacion: Datos persisten entre Play Mode y reinicio del editor.
+
+ETAPA 5 - GachaManager y PitySystem (logica pura)
+---------------------------------------------------
+Acciones:
+1. Crear GachaResult.cs, WeightedRandom.cs, PitySystem.cs, GachaManager.cs.
+2. Crear escena Sandbox con test de 100.000 tiradas.
+3. Imprimir histogramas de rareza (max desviacion 1% de tasas teoricas).
+4. Validar garantia de Raro+ en tirada x10.
+
+Verificacion: Distribuciones empiricas coinciden con teoricas; pity llega a 90 y fuerza Legendario.
+
+ETAPA 6 - Escena MainMenu
+---------------------------
+Acciones:
+1. Crear 00_MainMenu.unity con jerarquia del capitulo 9.1.
+2. Importar Logo_AlRescate (placeholder).
+3. Anadir EventSystem con Input System UI Input Module.
+4. Crear MainMenuController.cs y conectar botones.
+
+Verificacion: 'Jugar' carga GachaHub; la UI escala correctamente en 1080x1920 y 1920x1080.
+
+ETAPA 7 - Escena GachaHub (layout base)
+-----------------------------------------
+Acciones:
+1. Crear 01_GachaHub.unity con jerarquia del capitulo 9.2.
+2. Anadir background y maquina (placeholders).
+3. Crear todos los Canvas con sus paneles desactivados por defecto.
+
+Verificacion: HUD basico visible; paneles existen pero no son visibles.
+
+ETAPA 8 - PlayerInventory y CurrencyDisplay
+---------------------------------------------
+Acciones:
+1. Crear PlayerInventory.cs y PlayerProfile.cs.
+2. Crear CurrencyDisplay.cs y conectar al TMP del HUD.
+3. Verificar que SaveSystem.Save() se invoca tras cada cambio.
+
+Verificacion: Contador de gemas animado al cambiar; dato persiste entre sesiones.
+
+ETAPA 9 - HUD completo y conexion con GachaManager
+----------------------------------------------------
+Acciones:
+1. Anadir GachaUIController.cs y conectar todos los botones.
+2. Conectar btnShop, btnCollection y btnOptions a sus canvases.
+3. Verificar que x1 y x10 descuentan gemas y avanzan pity.
+
+Verificacion: Consola loggea pulls; gemas se descuentan; pity counters avanzan.
+
+ETAPA 10 - Tienda simulada
+----------------------------
+Acciones:
+1. Crear ShopManager.cs y GemPackageCard.cs.
+2. Diseniar prefab GemPackageCard con sprites placeholder y TMP fields.
+3. Configurar 5 paquetes en el inspector.
+
+Verificacion: Cada 'Comprar' imprime el log [SHOP] correcto.
+
+ETAPA 11 - Panel de resultado + RevealAnimationController
+----------------------------------------------------------
+Acciones:
+1. Crear ResultCardView.cs y prefab ResultCard.
+2. Crear RevealAnimationController.cs.
+3. Crear BeamOfLight y 4 ParticleSystems (placeholder).
+4. Probar PlayX1 y PlayX10.
+
+Verificacion: Cada tirada muestra cartas correctas; x10 muestra 10 cartas; Skip funciona.
+
+ETAPA 12 - Coleccion + filtros + equipar
+------------------------------------------
+Acciones:
+1. Crear CollectionUI.cs, CollectionCell.cs, CollectionDetailView.cs.
+2. Disenar prefab CollectionCell.
+3. Conectar toggles de filtro.
+4. Verificar siluetas para items no obtenidos.
+5. Probar boton 'Equipar'; mascota equipada persiste.
+
+Verificacion: Coleccion muestra mascotas obtenidas; filtros funcionan; equipar actualiza HUD.
+
+ETAPA 13 - PetController: mascota flotando
+--------------------------------------------
+Acciones:
+1. Crear PetController.cs.
+2. Crear prefab Foxy con sprite + Animator + clips Idle, Floating.
+3. Anadir PetSpawnPoint en GachaHub y conectar PetController.
+
+Verificacion: Mascota equipada flota con animacion suave y se actualiza al cambiar.
+
+ETAPA 14 - Efectos de particulas por rareza
+---------------------------------------------
+Acciones:
+1. Crear los 4 Particle Systems FX_Reveal_Common/Rare/Epic/Legendary.
+2. Asignarlos al RevealAnimationController.
+3. Crear prefab FX_Aura_Legendary.
+
+Verificacion: Tiradas reproducen particulas correctas; Aurora equipada exhibe aura.
+
+ETAPA 15 - Animaciones de la maquina gachapon
+-----------------------------------------------
+Acciones:
+1. Crear sprites/animaciones Idle, Spin, Cooldown de la maquina.
+2. Crear Animator Controller y conectarlo.
+3. Llamar SetTrigger('TrigSpin') desde GachaUIController.
+
+Verificacion: Maquina se anima al tirar, sincronizada con el revelado.
+
+ETAPA 16 - Animaciones de UI
+------------------------------
+Acciones:
+1. Crear UIAnimator.cs.
+2. Anadir CanvasGroup a Canvas_Result, Canvas_Collection, Canvas_Shop.
+3. Reemplazar SetActive por StartCoroutine(UIAnimator.FadeIn(...)).
+4. Configurar ScalePulse loop en botones de tirada.
+
+Verificacion: Aperturas y cierres de paneles tienen tweening; botones llaman la atencion.
+
+ETAPA 17 - AudioManager y SFX
+-------------------------------
+Acciones:
+1. Crear AudioManager.cs y GameObject AudioManager en Bootstrap.
+2. Crear AudioMixer con 3 grupos.
+3. Importar todos los AudioClips listados en 13.1.
+4. Asignar cada clip a sfxLibrary.
+5. Llamar Play() desde cada interaccion.
+
+Verificacion: Cada accion dispara su sonido correcto; slider de volumen funciona.
+
+ETAPA 18 - Glow, shimmer y postprocesado
+------------------------------------------
+Acciones:
+1. Crear materiales UI_Glow_Common/Rare/Epic/Legendary.
+2. Anadir Frame_Glow en el ResultCard prefab.
+3. Anadir efecto Shimmer en rareza Epica y Legendaria.
+4. Anadir Volume con Bloom suave en URP 2D.
+
+Verificacion: Cartas legendarias se ven doradas y brillantes.
+
+ETAPA 19 - Testing del sistema de pity y probabilidades
+---------------------------------------------------------
+Acciones:
+1. Crear escena 'Sandbox' con boton 'Test 1000 pulls' que loggee histograma.
+2. Verificar tasas convergen a las teoricas (+/- 1%).
+3. Verificar hard pity en tirada 90.
+4. Verificar persistencia: cerrar con n=88, reabrir; n debe ser 88.
+5. Probar pity de Epico cada 10 tiradas.
+
+Verificacion: Tests pasan; histogramas documentados en docs/.
+
+ETAPA 20 - Pulido visual final, testing completo y build
+---------------------------------------------------------
+Acciones:
+1. Pulir todas las animaciones (curvas, duraciones).
+2. Anadir traducciones placeholder ES/EN si se desea bilingue.
+3. Probar en dispositivos reales (PC, Android).
+4. Resolver bugs cosmeticos.
+5. Generar build final: File > Build Settings > Build.
+6. Versionado y nota de release v0.1.
+
+Verificacion: Build instalable funciona en target; todos los flujos son completables sin errores.
+
+================================================================================
+20. PRUEBAS, TESTING Y VALIDACION
+================================================================================
+
+20.1 Script de prueba de probabilidades
+-----------------------------------------
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GachaProbabilityTester : MonoBehaviour
+{
+    public GachaPool pool;
+    public int iterations = 100000;
+
+    [ContextMenu("Run probability test")]
+    void RunTest()
+    {
+        var counts = new Dictionary<Rarity, int>
+        {
+            { Rarity.Common, 0 }, { Rarity.Rare, 0 },
+            { Rarity.Epic, 0 }, { Rarity.Legendary, 0 }
+        };
+
+        SaveSystem.Current.pityLegendaryCounter = 0;
+        SaveSystem.Current.pityEpicCounter = 0;
+
+        for (int i = 0; i < iterations; i++)
+        {
+            float[] w = new float[] { pool.pCommon, pool.pRare, pool.pEpic, pool.pLegendary };
+            int idx = WeightedRandom.PickIndex(w);
+            counts[(Rarity)idx]++;
+        }
+
+        foreach (var kv in counts)
+        {
+            float pct = (float)kv.Value / iterations * 100f;
+            Debug.Log($"{kv.Key}: {kv.Value} ({pct:F2}%)");
+        }
+    }
+}
+
+20.2 Test del soft pity
+------------------------
+1. Fijar pityLegendaryCounter = 70.
+2. Ejecutar 1000 simulaciones y registrar en que tirada aparece el primer Legendario.
+3. Esperar promedio entre tiradas 76 y 84.
+
+20.3 Test del hard pity
+------------------------
+1. Fijar pityLegendaryCounter = 89.
+2. Ejecutar SinglePull: la rareza DEBE ser Legendary.
+3. Repetir 100 veces; ratio debe ser 100%.
+
+20.4 Test del pity de Epico
+-----------------------------
+1. Fijar pityEpicCounter = 9.
+2. Ejecutar SinglePull asegurando roll natural en Comun/Raro.
+3. La rareza final debe ser Epica.
+
+20.5 Test de persistencia
+--------------------------
+1. Lanzar juego, hacer 30 tiradas. Comprobar contador en HUD.
+2. Cerrar Unity (Stop play). Reabrir. Volver a Play.
+3. Contador, gemas, mascotas y pity deben restaurarse exactamente.
+4. Borrar savedata.json: el flujo de bienvenida debe activarse.
+
+20.6 Pruebas en movil
+----------------------
+- Generar APK y probar en al menos 2 dispositivos.
+- Verificar UI en aspect ratios 16:9 y 19.5:9.
+- Comprobar consumo de memoria < 250 MB en runtime.
+- Verificar FPS estable en 60 con bloom y particulas activos.
+- Probar que la orientacion se mantiene en Portrait.
+
+================================================================================
+21. BUILD, DESPLIEGUE Y PUBLICACION
+================================================================================
+
+21.1 Build para PC (Windows)
+------------------------------
+1. File > Build Settings.
+2. Orden de escenas: 99_Bootstrap (0), 00_MainMenu (1), 01_GachaHub (2).
+3. Plataforma 'Windows, Mac & Linux' > Switch Platform.
+4. Architecture x86_64; Server Build = false.
+5. Build > seleccionar carpeta /builds/win/.
+6. Probar en maquina diferente para validar dependencias.
+
+21.2 Build para Android
+-------------------------
+1. File > Build Settings > Android > Switch Platform.
+2. Scripting Backend = IL2CPP.
+3. Target Architectures: ARM64 y ARMv7.
+4. Publishing Settings: crear keystore.
+5. Build (APK) o Build App Bundle (AAB para Google Play).
+6. Probar APK con 'adb install'.
+
+21.3 Notas de release (CHANGELOG.md)
+--------------------------------------
+# v0.1.0 (Pre-alpha cerrada)
+- Sistema gacha completo con tirada x1 y x10.
+- 5 mascotas y 8 items consumibles.
+- Soft pity 75 / Hard pity 90 / Epic pity 10.
+- Tienda simulada (sin pasarela real).
+- Coleccion con filtros y equipar mascota.
+- AudioManager con SFX y musica de hub.
+- Build PC y Android.
+
+21.4 Integracion futura del pago real
+---------------------------------------
+Cuando llegue el momento de conectar la pasarela de la Cruz Roja:
+- Reemplazar OnBuyClicked en ShopManager.cs por llamada a la SDK oficial.
+- Implementar callbacks de exito/fracaso de la transaccion.
+- Validar la compra en backend antes de acreditar Gemas.
+- Reemplazar Debug.Log por analytics + telemetry.
+- Considerar servicio de cuentas para sincronizar progreso entre dispositivos.
+
+================================================================================
+22. APENDICES
+================================================================================
+
+22.1 Resumen de assets requeridos
+------------------------------------
+Categoria                        | Cantidad | Notas
+---------------------------------|----------|------------------------------
+Sprites de mascotas (idle+reveal)| 5        | 512x512, 8-16 frames
+Sprites de items                 | 8        | 256x256
+Sprites UI (botones, marcos)     | ~30      | 9-Slice 16x16 donde aplique
+Sprites de fondo                 | 3        | Parallax 1920x1080
+Sprites de la maquina            | 5-8      | Frames de animacion
+Particulas (texturas)            | ~6       | 128x128
+AudioClips SFX                   | 17       | Ver tabla 13.1
+AudioClips musica                | 1        | Loop hub
+
+22.2 Atajos de teclado utiles en el editor
+--------------------------------------------
+Atajo             | Accion
+------------------|-------------------------------
+Ctrl + S          | Guardar escena
+Ctrl + P          | Play / Stop
+Ctrl + Shift + P  | Pausar play mode
+F                 | Centrar camara en seleccion
+Ctrl + D          | Duplicar GameObject
+Ctrl + Shift + N  | Crear GameObject vacio
+Alt + clic        | Plegar/desplegar jerarquia
+
+22.3 Plantilla rapida para nuevas mascotas
+--------------------------------------------
+1. Disenar sprite (idle + reveal + floating + happy).
+2. Crear AnimatorController y los 4 clips.
+3. Crear prefab Pf_Pet_<Nombre> con Sprite Renderer + Animator.
+4. Crear ScriptableObject Pet_<Nombre> y rellenar campos.
+5. Crear particulas FX_Reveal_<Rareza> si aun no existen.
+6. Anadir mascota a la lista correcta en MainGachaPool.
+7. Lanzar GachaHub y forzar la mascota desde consola para validar.
+
+22.4 Plantilla para nuevos items consumibles
+---------------------------------------------
+1. Disenar icono 256x256.
+2. Crear ScriptableObject Item_<Nombre> con tipo de efecto y duracion.
+3. Anadir item al pool en la lista correspondiente.
+4. (Opcional) Implementar logica de aplicacion del efecto en futuras expansiones.
+
+22.5 Glosario rapido
+---------------------
+Termino         | Significado
+----------------|--------------------------------------------------------------
+Gacha           | Sistema de obtencion aleatoria con probabilidades
+Pity            | Mecanismo de garantia tras N tiradas sin raro obtenido
+Soft pity       | Aumento progresivo de probabilidad antes del hard pity
+Hard pity       | Garantia absoluta al alcanzar el limite de tiradas
+Pool            | Conjunto de objetos disponibles en una banner / tirada
+URP 2D          | Universal Render Pipeline configurado para 2D
+Singleton       | Patron de diseno con una unica instancia global accesible
+ScriptableObject| Asset de Unity que almacena datos sin estar atado a una escena
+DOTween         | Libreria de tweening declarativa para Unity
+Audio Mixer     | Asset de Unity para mezclar y controlar volumenes/efectos
+
+================================================================================
+22.6 RESUMEN EJECUTIVO DEL PROYECTO
+================================================================================
+
+'Al Rescate' es un sistema gacha completo en Unity 2022.3 LTS con URP 2D, construido desde
+cero como nucleo de un videojuego de recaudacion para la Cruz Roja. El jugador tira de un
+gachapon con la moneda Gemas, obtiene mascotas (5 iniciales) e items (8 iniciales), construye
+una coleccion, equipa una mascota que lo acompana visualmente, y se beneficia de un sistema
+de pity (soft 75 / hard 90 para Legendarios; 10 para Epicos) que garantiza un coleccionismo
+justo. La tienda de gemas existe pero solo simula la transaccion; queda preparada para
+conectar la pasarela real de la Cruz Roja.
+
+La arquitectura es modular: GachaManager, PitySystem, PlayerInventory, AudioManager,
+SaveSystem y los controladores de UI son piezas independientes que se comunican por eventos.
+La hoja de ruta de 20 etapas guia la implementacion paso a paso, con criterios de verificacion
+claros, y la persistencia ya esta resuelta tanto con PlayerPrefs como con JSON. Al final del
+proceso se obtiene una build instalable en PC y Android, completamente funcional, con todos
+los hooks listos para anadir gameplay adicional.
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================

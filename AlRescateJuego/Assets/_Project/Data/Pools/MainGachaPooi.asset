@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36f04125725d69248a182117fa9f3624, type: 3}
+  m_Name: MainGachaPooi
+  m_EditorClassIdentifier: 
+  singlePullCost: 160
+  multiPullCost: 1440
+  pCommon: 0.783
+  pRare: 0.15
+  pEpic: 0.061
+  pLegendary: 0.006
+  softPityStart: 75
+  hardPity: 90
+  softPityIncrement: 0.06
+  epicPityThreshold: 10
+  petChance: 0.3
+  petsCommon:
+  - {fileID: 11400000, guid: 8610588ed77c1204eb40d2739c1bb33f, type: 2}
+  petsRare:
+  - {fileID: 11400000, guid: 0a4df1e53bc61c34d8d70435139ad782, type: 2}
+  - {fileID: 11400000, guid: 2e46807748a2f11459c412d8d1f05221, type: 2}
+  petsEpic:
+  - {fileID: 11400000, guid: 29555d4f015487f4fb391d4eb21031f5, type: 2}
+  petsLegendary:
+  - {fileID: 11400000, guid: 1f45333954a7a2e4fad42a38819494d5, type: 2}
+  itemsCommon:
+  - {fileID: 11400000, guid: 4f043e92b747c184682c1c7cba527a79, type: 2}
+  - {fileID: 11400000, guid: 07b27f5721d60dc448b354011c5be985, type: 2}
+  itemsRare:
+  - {fileID: 11400000, guid: 64c330e5e8b34bd4cbc6ce6ded3982c0, type: 2}
+  - {fileID: 11400000, guid: 0a50ed50540025549989e16f60c642c0, type: 2}
+  itemsEpic:
+  - {fileID: 11400000, guid: d5d2c6e70c05482499ed58fb3c724b93, type: 2}
+  - {fileID: 11400000, guid: 77a25de4a2e5b784fbd8d4bfed1428ba, type: 2}
+  itemsLegendary:
+  - {fileID: 11400000, guid: 80e072c9dd072ed4ab3d0a9986e92152, type: 2}
+  - {fileID: 11400000, guid: 3163bd5e26182234c8e6f6ebdbadf9b9, type: 2}
