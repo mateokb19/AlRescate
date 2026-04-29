@@ -4,7 +4,7 @@ Unity 2022.3.62f2 LTS - URP 2D - Input System nuevo
 Documento tecnico exhaustivo - listo para implementacion desde cero
 
 ================================================================================
-PROGRESO ACTUAL  (ultima actualizacion: 2026-04-27)
+PROGRESO ACTUAL  (ultima actualizacion: 2026-04-28)
 ================================================================================
 
 [COMPLETADO] ETAPA 1  - Configuracion del proyecto Unity
@@ -21,10 +21,16 @@ PROGRESO ACTUAL  (ultima actualizacion: 2026-04-27)
 [COMPLETADO] ETAPA 10 - Tienda simulada (ShopManager con log de compra)
 [COMPLETADO] ETAPA 11 - Panel de resultado + RevealAnimationController
                          Haz de luz por rareza, cartas x1 y x10, boton Saltar
-[EN CURSO]   ETAPA 12 - Coleccion: panel abierto, CollectionCell prefab creado
-                         PENDIENTE: asignar Database y CellPrefab en CollectionUI,
-                         verificar grid con mascotas obtenidas, filtros y equipar
-[PENDIENTE]  ETAPA 13 - PetController: mascota flotando en hub
+[COMPLETADO] ETAPA 12 - Coleccion funcional
+                         Grid muestra todas las mascotas e items (obtenidos a color,
+                         bloqueados en silueta). Clic en mascota desbloqueada la equipa
+                         directamente. Boton cerrar funciona. PlayerInventory.database
+                         asignado. Boton duplicado eliminado. Orden de jerarquia corregido.
+[EN CURSO]   ETAPA 13 - PetController: mascota flotando en hub
+                         PENDIENTE: PetSpawnPoint no aparece en Scene view (posiblemente
+                         fuera de camara). Asignar spawnPoint en Inspector. Crear prefab
+                         placeholder de mascota y asignarlo a PetData. PetController.cs
+                         ya esta completo y listo.
 [PENDIENTE]  ETAPA 14 - Efectos de particulas por rareza (4 ParticleSystems)
 [PENDIENTE]  ETAPA 15 - Animaciones de la maquina gachapon (Idle/Spin/Cooldown)
 [PENDIENTE]  ETAPA 16 - Animaciones de UI (FadeIn/FadeOut/ScalePop en paneles)
@@ -37,7 +43,10 @@ NOTAS TECNICAS:
 - Escenas generadas via SceneBuilder.cs (menu AlRescate en Unity)
 - Prefabs en Assets/_Project/Prefabs/UI/: ResultCard.prefab, CollectionCell.prefab
 - Scripts en Assets/_Project/Scripts/ organizados por carpeta
-- El GachaPool necesita tener las listas de mascotas/items asignadas manualmente
+- PlayerInventory necesita GachaDatabase asignado en el Inspector (campo Database)
+- Canvas_Collection: escala debe ser (1,1,1) en RectTransform; tiene GraphicRaycaster
+- CollectionUI.Close() es public y desactiva Canvas_Collection (el padre de CollectionRoot)
+- En CollectionRoot la jerarquia correcta es: ScrollView_Grid primero, Btn_Close_Collection despues
 - AudioManager funciona pero sin clips asignados (warnings en consola, no errores)
 - La escena Bootstrap (99_Bootstrap) carga SaveSystem antes de pasar a MainMenu
 

@@ -59,7 +59,11 @@ public class CollectionUI : MonoBehaviour
     private void AddCellPet(PetData p, bool owned)
     {
         var go = Instantiate(cellPrefab, gridContent);
-        go.GetComponent<CollectionCell>().SetPet(p, owned, () => detailView?.ShowPet(p, owned));
+        go.GetComponent<CollectionCell>().SetPet(p, owned, () =>
+        {
+            if (detailView != null) detailView.ShowPet(p, owned);
+            else if (owned) PlayerInventory.Instance.EquipPet(p);
+        });
     }
 
     private void AddCellItem(GachaItemData i, int qty)
@@ -68,9 +72,10 @@ public class CollectionUI : MonoBehaviour
         go.GetComponent<CollectionCell>().SetItem(i, qty, () => detailView?.ShowItem(i, qty));
     }
 
-    private void Close()
+    public void Close()
     {
-        gameObject.SetActive(false);
+        Debug.Log("[CollectionUI] Close() llamado. Parent: " + transform.parent.name);
+        transform.parent.gameObject.SetActive(false);
         AudioManager.Instance.Play("sfx_ui_close");
     }
 }
