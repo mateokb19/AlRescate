@@ -9,11 +9,16 @@ public class CurrencyDisplay : MonoBehaviour
     void OnEnable()
     {
         if (PlayerInventory.Instance != null)
-        {
             PlayerInventory.Instance.OnGemsChanged += OnGemsChanged;
-            _displayValue = PlayerInventory.Instance.Gems;
-            gemText.text = _displayValue.ToString("N0");
-        }
+    }
+
+    void Start()
+    {
+        if (PlayerInventory.Instance == null) return;
+        PlayerInventory.Instance.OnGemsChanged -= OnGemsChanged;
+        PlayerInventory.Instance.OnGemsChanged += OnGemsChanged;
+        _displayValue = PlayerInventory.Instance.Gems;
+        gemText.text = _displayValue.ToString("N0");
     }
 
     void OnDisable()

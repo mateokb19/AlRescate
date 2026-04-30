@@ -18,7 +18,7 @@ MonoBehaviour:
   rarity: 1
   iconCollection: {fileID: 0}
   iconLarge: {fileID: 0}
-  petPrefab: {fileID: 4138272922975995099, guid: bc94942389b8cab48931835afb4f2003, type: 3}
+  petPrefab: {fileID: 8593015663751972946, guid: 0070c4a77ea103546ab5e491d783289a, type: 3}
   animatorController: {fileID: 0}
   powerupType: 0
   powerupValue: 0

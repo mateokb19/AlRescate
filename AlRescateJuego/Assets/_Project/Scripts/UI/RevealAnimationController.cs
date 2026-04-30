@@ -22,11 +22,28 @@ public class RevealAnimationController : MonoBehaviour
     public Color colorGold = new Color(1f, 0.85f, 0.10f);
 
     private bool _skipRequested;
+    private Material _particleMat;
 
     void Start()
     {
         if (btnSkip != null) btnSkip.onClick.AddListener(() => _skipRequested = true);
         if (btnClose != null) btnClose.onClick.AddListener(Close);
+
+        var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                  ?? Shader.Find("Sprites/Default");
+        if (shader != null) _particleMat = new Material(shader);
+
+        foreach (var fx in new[] { fxCommon, fxRare, fxEpic, fxLegendary })
+        {
+            if (fx == null) continue;
+            if (_particleMat != null)
+            {
+                var rend = fx.GetComponent<ParticleSystemRenderer>();
+                if (rend != null && rend.sharedMaterial == null)
+                    rend.material = _particleMat;
+            }
+            fx.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
     }
 
     public void SetPullAgainAction(System.Action action)
@@ -129,17 +146,32 @@ public class RevealAnimationController : MonoBehaviour
         beamOfLight.rectTransform.localScale = to;
     }
 
+    private static readonly Color _colorCommon    = new Color(0.80f, 0.80f, 0.80f);
+    private static readonly Color _colorRare      = new Color(0.00f, 0.86f, 0.47f);
+    private static readonly Color _colorEpic      = new Color(0.63f, 0.20f, 1.00f);
+    private static readonly Color _colorLegendary = new Color(1.00f, 0.84f, 0.00f);
+
     private void PlayParticleByRarity(Rarity r)
     {
         ParticleSystem fx = r switch
         {
-            Rarity.Common => fxCommon,
-            Rarity.Rare => fxRare,
-            Rarity.Epic => fxEpic,
+            Rarity.Common    => fxCommon,
+            Rarity.Rare      => fxRare,
+            Rarity.Epic      => fxEpic,
             Rarity.Legendary => fxLegendary,
-            _ => null
+            _                => null
         };
-        if (fx != null) fx.Play();
+        if (fx == null) return;
+        var main = fx.main;
+        main.startColor = r switch
+        {
+            Rarity.Common    => _colorCommon,
+            Rarity.Rare      => _colorRare,
+            Rarity.Epic      => _colorEpic,
+            Rarity.Legendary => _colorLegendary,
+            _                => Color.white
+        };
+        fx.Play();
     }
 
     private string SfxByRarity(Rarity r) => r switch

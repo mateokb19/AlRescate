@@ -21,7 +21,9 @@ public class GachaUIController : MonoBehaviour
 
     [Header("Bono de bienvenida")]
     public GameObject welcomePanel;
+    public Button welcomeCloseBtn;
     public int welcomeGems = 1600;
+    public PetData starterPet;
 
     void Start()
     {
@@ -35,6 +37,9 @@ public class GachaUIController : MonoBehaviour
         canvasResult.SetActive(false);
         canvasShop.SetActive(false);
         canvasCollection.SetActive(false);
+
+        if (welcomeCloseBtn != null)
+            welcomeCloseBtn.onClick.AddListener(() => welcomePanel?.SetActive(false));
 
         TryGiveWelcomeBonus();
         AudioManager.Instance.PlayHubMusic();
@@ -51,6 +56,11 @@ public class GachaUIController : MonoBehaviour
         if (!SaveSystem.Current.firstLaunch) return;
         SaveSystem.Current.firstLaunch = false;
         PlayerInventory.Instance.AddGems(welcomeGems);
+        if (starterPet != null)
+        {
+            PlayerInventory.Instance.GrantPet(starterPet, out _);
+            PlayerInventory.Instance.EquipPet(starterPet);
+        }
         if (welcomePanel != null) welcomePanel.SetActive(true);
         SaveSystem.Save();
     }

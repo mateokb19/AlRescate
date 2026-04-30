@@ -27,9 +27,13 @@ public class PetController : MonoBehaviour
 
     void SpawnPet(PetData pet)
     {
+        Debug.Log($"[PetController] SpawnPet llamado. pet={pet?.displayName ?? "NULL"} prefab={pet?.petPrefab?.name ?? "NULL"} spawnPoint={spawnPoint?.name ?? "NULL"}");
         if (_instance != null) Destroy(_instance);
-        if (pet == null || pet.petPrefab == null) return;
+        if (pet == null) { Debug.LogWarning("[PetController] pet es NULL"); return; }
+        if (pet.petPrefab == null) { Debug.LogWarning($"[PetController] petPrefab de '{pet.displayName}' es NULL"); return; }
+        if (spawnPoint == null) { Debug.LogWarning("[PetController] spawnPoint no asignado"); return; }
         _instance = Instantiate(pet.petPrefab, spawnPoint.position, Quaternion.identity, spawnPoint);
+        Debug.Log($"[PetController] Instanciado en {spawnPoint.position}. Objeto: {_instance.name}");
         _animator = _instance.GetComponentInChildren<Animator>();
         if (_animator != null && pet.animatorController != null)
             _animator.runtimeAnimatorController = pet.animatorController;

@@ -4,7 +4,7 @@ Unity 2022.3.62f2 LTS - URP 2D - Input System nuevo
 Documento tecnico exhaustivo - listo para implementacion desde cero
 
 ================================================================================
-PROGRESO ACTUAL  (ultima actualizacion: 2026-04-28)
+PROGRESO ACTUAL  (ultima actualizacion: 2026-04-29)
 ================================================================================
 
 [COMPLETADO] ETAPA 1  - Configuracion del proyecto Unity
@@ -26,12 +26,25 @@ PROGRESO ACTUAL  (ultima actualizacion: 2026-04-28)
                          bloqueados en silueta). Clic en mascota desbloqueada la equipa
                          directamente. Boton cerrar funciona. PlayerInventory.database
                          asignado. Boton duplicado eliminado. Orden de jerarquia corregido.
-[EN CURSO]   ETAPA 13 - PetController: mascota flotando en hub
-                         PENDIENTE: PetSpawnPoint no aparece en Scene view (posiblemente
-                         fuera de camara). Asignar spawnPoint en Inspector. Crear prefab
-                         placeholder de mascota y asignarlo a PetData. PetController.cs
-                         ya esta completo y listo.
-[PENDIENTE]  ETAPA 14 - Efectos de particulas por rareza (4 ParticleSystems)
+[COMPLETADO] ETAPA 13 - PetController: mascota flotando en hub
+                         PetSpawnPoint reubicado a (-3, 0, 0) dentro del view de camara.
+                         Foxy.png creado como sprite placeholder (circulo naranja 128x128).
+                         Pet_Foxy.asset tenia referencia rota al prefab (GUID incorrecto),
+                         corregida para apuntar a Foxy.prefab (guid 0070c4a77ea103546ab5e491d783289a).
+                         Foxy.prefab tenia referencia rota al sprite (GUID incorrecto),
+                         corregida para apuntar a Foxy.png (guid 228abc117023349448d8902ec1286afd).
+                         GachaUIController: campo starterPet para otorgar Foxy en primer
+                         lanzamiento (junto con las 1600 gemas de bienvenida).
+                         CurrencyDisplay: corregido bug de timing (OnEnable corria antes
+                         de PlayerInventory.Awake); ahora Start() garantiza inicializacion.
+                         PlayerInventory.Start() dispara OnGemsChanged al arrancar.
+                         Btn_WelcomeClose: ahora se conecta por codigo via welcomeCloseBtn.
+[EN CURSO]   ETAPA 14 - Efectos de particulas por rareza (4 ParticleSystems)
+                         4 ParticleSystems creados bajo ParticleFX_Container con Play On
+                         Awake desactivado. RevealAnimationController asigna material URP
+                         valido en Start() via Shader.Find y fuerza el color correcto por
+                         rareza antes de cada Play(). PENDIENTE verificar colores en runtime
+                         (bug de material nulo genera morado; fix en Start() en revision).
 [PENDIENTE]  ETAPA 15 - Animaciones de la maquina gachapon (Idle/Spin/Cooldown)
 [PENDIENTE]  ETAPA 16 - Animaciones de UI (FadeIn/FadeOut/ScalePop en paneles)
 [PENDIENTE]  ETAPA 17 - AudioManager: AudioMixer + importar clips de SFX y musica
@@ -49,6 +62,12 @@ NOTAS TECNICAS:
 - En CollectionRoot la jerarquia correcta es: ScrollView_Grid primero, Btn_Close_Collection despues
 - AudioManager funciona pero sin clips asignados (warnings en consola, no errores)
 - La escena Bootstrap (99_Bootstrap) carga SaveSystem antes de pasar a MainMenu
+- CurrencyDisplay usa Start() (no solo OnEnable) para garantizar sincronizacion post-Awake
+- RevealAnimationController.Start() asigna material URP a ParticleSystems y los detiene
+- RevealAnimationController.PlayParticleByRarity() fuerza color correcto por rareza via main.startColor
+- GachaUIController tiene campo starterPet (Pet_Foxy) y welcomeCloseBtn (Btn_WelcomeClose)
+- Foxy.png en Assets/_Project/Sprites/Pets/ con guid 228abc117023349448d8902ec1286afd
+- PetSpawnPoint en escena: position (-3, 0, 0), scale (1,1,1), spawnPoint auto-referenciado
 
 Motor: Unity 2022.3.62f2 LTS
 Pipeline: Universal Render Pipeline 2D (URP 2D)

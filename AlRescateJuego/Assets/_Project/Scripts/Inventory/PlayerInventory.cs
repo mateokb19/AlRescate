@@ -39,6 +39,7 @@ public class PlayerInventory : MonoBehaviour
             EquippedPet = database.GetPetById(SaveSystem.Current.equippedPetId);
             if (EquippedPet != null) OnPetEquipped?.Invoke(EquippedPet);
         }
+        OnGemsChanged?.Invoke(Gems);
     }
 
     public bool TrySpendGems(int amount)
