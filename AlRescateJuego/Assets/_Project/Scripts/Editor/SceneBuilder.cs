@@ -449,7 +449,6 @@ public static class SceneBuilder
             bRect.anchorMax = new Vector2(1, 1);
             bRect.pivot = new Vector2(1, 1);
             bRect.anchoredPosition = new Vector2(-10, -10);
-            collUI.btnClose = btnClose.GetComponent<Button>();
         }
 
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(

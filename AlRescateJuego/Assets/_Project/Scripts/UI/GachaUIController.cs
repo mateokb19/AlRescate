@@ -10,6 +10,10 @@ public class GachaUIController : MonoBehaviour
     public Button btnCollection;
     public Button btnOptions;
 
+    [Header("Botones Cerrar Paneles")]
+    public Button btnCloseShop;
+    public Button btnCloseCollection;
+
     [Header("Canvas")]
     public GameObject canvasResult;
     public GameObject canvasShop;
@@ -32,6 +36,8 @@ public class GachaUIController : MonoBehaviour
         btnShop.onClick.AddListener(() => SetCanvas(canvasShop, true));
         btnCollection.onClick.AddListener(() => SetCanvas(canvasCollection, true));
         btnOptions.onClick.AddListener(OnOptionsClicked);
+        if (btnCloseShop != null) btnCloseShop.onClick.AddListener(() => SetCanvas(canvasShop, false));
+        if (btnCloseCollection != null) btnCloseCollection.onClick.AddListener(() => SetCanvas(canvasCollection, false));
         revealController.SetPullAgainAction(OnPullX1);
 
         canvasResult.SetActive(false);
@@ -67,8 +73,18 @@ public class GachaUIController : MonoBehaviour
 
     public void SetCanvas(GameObject c, bool active)
     {
-        c.SetActive(active);
         AudioManager.Instance.Play(active ? "sfx_ui_click" : "sfx_ui_close");
+        var cg = c.GetComponent<CanvasGroup>();
+        if (active)
+        {
+            c.SetActive(true);
+            if (cg != null) StartCoroutine(UIAnimator.FadeIn(cg));
+        }
+        else
+        {
+            if (cg != null) StartCoroutine(UIAnimator.FadeOut(cg));
+            else c.SetActive(false);
+        }
     }
 
     private void OnPullX1()

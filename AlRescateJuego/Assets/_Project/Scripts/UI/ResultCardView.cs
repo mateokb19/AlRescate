@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -5,6 +6,8 @@ using TMPro;
 public class ResultCardView : MonoBehaviour
 {
     public Image frameImage;
+    public Image frameGlow;
+    public Image shimmer;
     public Image artworkImage;
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI rarityText;
@@ -39,9 +42,42 @@ public class ResultCardView : MonoBehaviour
                 frameImage.sprite = FrameByRarity(r.rarity);
         }
 
-        // Fondo de la carta oscuro para que el texto sea visible
-        var bg = GetComponent<UnityEngine.UI.Image>();
+        if (frameGlow != null)
+        {
+            frameGlow.color = new Color(rarityColor.r, rarityColor.g, rarityColor.b, 0.45f);
+            frameGlow.gameObject.SetActive(r.rarity >= Rarity.Rare);
+        }
+
+        var bg = GetComponent<Image>();
         if (bg != null) bg.color = new Color(0.1f, 0.1f, 0.18f, 0.95f);
+
+        if (shimmer != null && r.rarity >= Rarity.Rare)
+        {
+            shimmer.gameObject.SetActive(true);
+            StartCoroutine(PlayShimmer());
+        }
+        else if (shimmer != null)
+        {
+            shimmer.gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator PlayShimmer()
+    {
+        if (shimmer == null) yield break;
+        var rt = shimmer.rectTransform;
+        var cardRt = GetComponent<RectTransform>();
+        float halfWidth = cardRt.rect.width * 0.5f;
+        float duration = 0.7f;
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float x = Mathf.Lerp(-halfWidth - 60f, halfWidth + 60f, t / duration);
+            rt.anchoredPosition = new Vector2(x, 0f);
+            yield return null;
+        }
+        shimmer.gameObject.SetActive(false);
     }
 
     private Sprite FrameByRarity(Rarity r) => r switch

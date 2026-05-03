@@ -4,7 +4,7 @@ Unity 2022.3.62f2 LTS - URP 2D - Input System nuevo
 Documento tecnico exhaustivo - listo para implementacion desde cero
 
 ================================================================================
-PROGRESO ACTUAL  (ultima actualizacion: 2026-04-29)
+PROGRESO ACTUAL  (ultima actualizacion: 2026-05-03)
 ================================================================================
 
 [COMPLETADO] ETAPA 1  - Configuracion del proyecto Unity
@@ -39,16 +39,35 @@ PROGRESO ACTUAL  (ultima actualizacion: 2026-04-29)
                          de PlayerInventory.Awake); ahora Start() garantiza inicializacion.
                          PlayerInventory.Start() dispara OnGemsChanged al arrancar.
                          Btn_WelcomeClose: ahora se conecta por codigo via welcomeCloseBtn.
-[EN CURSO]   ETAPA 14 - Efectos de particulas por rareza (4 ParticleSystems)
-                         4 ParticleSystems creados bajo ParticleFX_Container con Play On
-                         Awake desactivado. RevealAnimationController asigna material URP
-                         valido en Start() via Shader.Find y fuerza el color correcto por
-                         rareza antes de cada Play(). PENDIENTE verificar colores en runtime
-                         (bug de material nulo genera morado; fix en Start() en revision).
-[PENDIENTE]  ETAPA 15 - Animaciones de la maquina gachapon (Idle/Spin/Cooldown)
-[PENDIENTE]  ETAPA 16 - Animaciones de UI (FadeIn/FadeOut/ScalePop en paneles)
-[PENDIENTE]  ETAPA 17 - AudioManager: AudioMixer + importar clips de SFX y musica
-[PENDIENTE]  ETAPA 18 - Glow, shimmer y postprocesado (Bloom URP 2D)
+[COMPLETADO] ETAPA 14 - Efectos de particulas por rareza (4 ParticleSystems)
+                         Bug de material morado corregido: RevealAnimationController.Start()
+                         ahora asigna material URP siempre (sin condicion == null).
+                         ParticleFX_Container movido a nivel raiz de la escena (fuera de
+                         Canvas_Result) para evitar herencia de escala (0,0,0) del Canvas.
+                         FX_Reveal_Common/Rare/Epic/Legendary asignados en Inspector.
+[COMPLETADO] ETAPA 15 - Animaciones de la maquina gachapon (Idle/Spin/Cooldown)
+                         GachaMachine GameObject creado en escena en (0,0,0).
+                         GachaMachine_AnimatorController con estados Idle/Spin/Cooldown
+                         y Trigger TrigSpin. Clips GachaMachine_Idle/Spin/Cooldown creados.
+                         Asignado en HubController campo gachaMachineAnimator.
+[COMPLETADO] ETAPA 16 - Animaciones de UI (FadeIn/FadeOut en paneles)
+                         GachaUIController.SetCanvas() actualizado para usar UIAnimator.
+                         CanvasGroup agregado a Canvas_Result, Canvas_Shop, Canvas_Collection.
+                         Botones btnCloseShop y btnCloseCollection movidos a GachaUIController
+                         (CollectionUI.Close() y su btnClose eliminados para evitar conflicto).
+                         SceneBuilder.cs actualizado para no referenciar CollectionUI.btnClose.
+[COMPLETADO] ETAPA 17 - AudioManager: AudioMixer configurado
+                         MasterMixer.mixer creado con grupos Master/Music/SFX.
+                         Parametros expuestos: Volume_Master, Volume_Music, Volume_SFX.
+                         AudioManager en escena con grupos asignados y 7 claves SFX
+                         registradas (clips pendientes de importar cuando haya assets reales).
+[COMPLETADO] ETAPA 18 - Glow y shimmer en ResultCard (Bloom omitido: no aplica a Canvas SS)
+                         ResultCardView actualizado con campos frameGlow y shimmer.
+                         Frame_Glow: Image hijo del raiz de ResultCard, Left/Right/Top/Bottom=-10,
+                         color de rareza alpha=0.45, visible solo para Raro+.
+                         Shimmer: Image diagonal (rot Z=20, width=50) dentro de ShimmerMask
+                         (hijo con RectMask2D), animado por corrutina de izq a der en 0.7s.
+                         RectMask2D movido de raiz a ShimmerMask para no cortar Frame_Glow.
 [PENDIENTE]  ETAPA 19 - Testing de pity y probabilidades (escena Sandbox)
 [PENDIENTE]  ETAPA 20 - Pulido visual, build PC y Android
 
@@ -58,16 +77,20 @@ NOTAS TECNICAS:
 - Scripts en Assets/_Project/Scripts/ organizados por carpeta
 - PlayerInventory necesita GachaDatabase asignado en el Inspector (campo Database)
 - Canvas_Collection: escala debe ser (1,1,1) en RectTransform; tiene GraphicRaycaster
-- CollectionUI.Close() es public y desactiva Canvas_Collection (el padre de CollectionRoot)
+- CollectionUI NO tiene boton de cierre propio; lo maneja GachaUIController.btnCloseCollection
 - En CollectionRoot la jerarquia correcta es: ScrollView_Grid primero, Btn_Close_Collection despues
-- AudioManager funciona pero sin clips asignados (warnings en consola, no errores)
+- AudioManager funciona con 7 claves SFX registradas; clips vacios generan warnings (no errores)
 - La escena Bootstrap (99_Bootstrap) carga SaveSystem antes de pasar a MainMenu
 - CurrencyDisplay usa Start() (no solo OnEnable) para garantizar sincronizacion post-Awake
-- RevealAnimationController.Start() asigna material URP a ParticleSystems y los detiene
+- RevealAnimationController.Start() asigna material URP siempre (sin condicion null) a ParticleSystems
 - RevealAnimationController.PlayParticleByRarity() fuerza color correcto por rareza via main.startColor
 - GachaUIController tiene campo starterPet (Pet_Foxy) y welcomeCloseBtn (Btn_WelcomeClose)
+- GachaUIController tiene btnCloseShop (Btn_Close_Shop) y btnCloseCollection (Btn_Close_Collection)
 - Foxy.png en Assets/_Project/Sprites/Pets/ con guid 228abc117023349448d8902ec1286afd
 - PetSpawnPoint en escena: position (-3, 0, 0), scale (1,1,1), spawnPoint auto-referenciado
+- ParticleFX_Container es objeto raiz en escena (NO hijo de ningun Canvas)
+- ResultCard.prefab: Frame_Glow es primer hijo (detras), ShimmerMask es ultimo hijo con RectMask2D
+- Global Volume con Bloom NO configurado (menu Volume no disponible en esta instalacion de URP)
 
 Motor: Unity 2022.3.62f2 LTS
 Pipeline: Universal Render Pipeline 2D (URP 2D)

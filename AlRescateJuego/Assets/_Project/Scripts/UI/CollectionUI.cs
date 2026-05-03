@@ -12,17 +12,9 @@ public class CollectionUI : MonoBehaviour
     public Toggle togglePets, toggleItems;
     public Toggle toggleCommon, toggleRare, toggleEpic, toggleLegendary;
 
-    public Button btnClose;
-
     void OnEnable()
     {
         Rebuild();
-        if (btnClose != null) btnClose.onClick.AddListener(Close);
-    }
-
-    void OnDisable()
-    {
-        if (btnClose != null) btnClose.onClick.RemoveListener(Close);
     }
 
     public void Rebuild()
@@ -72,10 +64,4 @@ public class CollectionUI : MonoBehaviour
         go.GetComponent<CollectionCell>().SetItem(i, qty, () => detailView?.ShowItem(i, qty));
     }
 
-    public void Close()
-    {
-        Debug.Log("[CollectionUI] Close() llamado. Parent: " + transform.parent.name);
-        transform.parent.gameObject.SetActive(false);
-        AudioManager.Instance.Play("sfx_ui_close");
-    }
 }

@@ -39,7 +39,7 @@ public class RevealAnimationController : MonoBehaviour
             if (_particleMat != null)
             {
                 var rend = fx.GetComponent<ParticleSystemRenderer>();
-                if (rend != null && rend.sharedMaterial == null)
+                if (rend != null)
                     rend.material = _particleMat;
             }
             fx.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
