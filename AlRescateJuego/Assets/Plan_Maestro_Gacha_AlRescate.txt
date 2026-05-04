@@ -68,7 +68,20 @@ PROGRESO ACTUAL  (ultima actualizacion: 2026-05-03)
                          Shimmer: Image diagonal (rot Z=20, width=50) dentro de ShimmerMask
                          (hijo con RectMask2D), animado por corrutina de izq a der en 0.7s.
                          RectMask2D movido de raiz a ShimmerMask para no cortar Frame_Glow.
-[PENDIENTE]  ETAPA 19 - Testing de pity y probabilidades (escena Sandbox)
+[COMPLETADO] ETAPA 19 - Testing de pity y probabilidades (escena Sandbox)
+                         GachaProbabilityTester.cs creado en _Project/Scripts/Testing/.
+                         Escena Sandbox.unity creada en _Project/Scenes/ con GachaTester.
+                         5 tests implementados como ContextMenu:
+                           Test 1a: Tasas BASE sin pity — WeightedRandom puro (verifica pesos del pool).
+                           Test 1b: Tasas EFECTIVAS con pity acumulado (Epico ~12%, Legendario ~1.6%).
+                           Test 2: Hard pity en tirada 90 — 100/100 garantizado Legendario.
+                           Test 3: Soft pity activo desde tirada 75 — promedio correcto verificado.
+                           Test 4: Pity de Epico cada 10 tiradas — 200/200 garantizado Epico+.
+                           Test 5: Garantia Raro+ en x10 — 500/500 lotes con al menos 1 Raro+.
+                         Resultado: tasas BASE dentro de margen +-1%; pity inflacion confirmada
+                         como comportamiento correcto (no bug).
+                         Helpers de debug agregados: dar gemas, 89 tiradas, verificar hard pity,
+                         mostrar/resetear pity.
 [PENDIENTE]  ETAPA 20 - Pulido visual, build PC y Android
 
 NOTAS TECNICAS:
