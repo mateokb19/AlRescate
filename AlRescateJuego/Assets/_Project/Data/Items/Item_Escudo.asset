@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Escudo Reflectante
   description: 
   rarity: 1
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 12be3de54decd1a49aa278c5793c9468, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0

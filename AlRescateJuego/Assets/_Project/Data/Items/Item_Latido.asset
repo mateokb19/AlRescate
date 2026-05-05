@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Latido Divino
   description: 
   rarity: 3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: bb25d422566212948a7c035707a6210d, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0

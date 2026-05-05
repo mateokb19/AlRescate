@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: 'Tirada Gratuita '
   description: 
   rarity: 3
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 1eeaf3aa55c6fb34c85d4fb4b75e680b, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0
