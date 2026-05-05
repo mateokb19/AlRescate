@@ -13,6 +13,11 @@ public class SaveData
     public List<string> ownedPetIds = new List<string>();
     public List<ItemStack> itemStacks = new List<ItemStack>();
 
+    // Volúmenes (0..1, linear)
+    public float volumeMaster = 1f;
+    public float volumeMusic  = 1f;
+    public float volumeSfx    = 1f;
+
     [Serializable]
     public class ItemStack
     {

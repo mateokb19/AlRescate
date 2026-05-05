@@ -13,11 +13,13 @@ public class GachaUIController : MonoBehaviour
     [Header("Botones Cerrar Paneles")]
     public Button btnCloseShop;
     public Button btnCloseCollection;
+    public Button btnCloseOptions;
 
     [Header("Canvas")]
     public GameObject canvasResult;
     public GameObject canvasShop;
     public GameObject canvasCollection;
+    public GameObject canvasOptions;
 
     [Header("Animacion")]
     public RevealAnimationController revealController;
@@ -38,14 +40,21 @@ public class GachaUIController : MonoBehaviour
         btnOptions.onClick.AddListener(OnOptionsClicked);
         if (btnCloseShop != null) btnCloseShop.onClick.AddListener(() => SetCanvas(canvasShop, false));
         if (btnCloseCollection != null) btnCloseCollection.onClick.AddListener(() => SetCanvas(canvasCollection, false));
+        if (btnCloseOptions != null) btnCloseOptions.onClick.AddListener(() => SetCanvas(canvasOptions, false));
         revealController.SetPullAgainAction(OnPullX1);
 
         canvasResult.SetActive(false);
         canvasShop.SetActive(false);
         canvasCollection.SetActive(false);
+        if (canvasOptions != null) canvasOptions.SetActive(false);
 
         if (welcomeCloseBtn != null)
             welcomeCloseBtn.onClick.AddListener(() => welcomePanel?.SetActive(false));
+
+        // Restaurar volúmenes guardados
+        AudioManager.Instance.SetMasterVolume(SaveSystem.Current.volumeMaster);
+        AudioManager.Instance.SetMusicVolume (SaveSystem.Current.volumeMusic);
+        AudioManager.Instance.SetSfxVolume   (SaveSystem.Current.volumeSfx);
 
         TryGiveWelcomeBonus();
         AudioManager.Instance.PlayHubMusic();
@@ -109,7 +118,6 @@ public class GachaUIController : MonoBehaviour
 
     private void OnOptionsClicked()
     {
-        AudioManager.Instance.Play("sfx_ui_click");
-        Debug.Log("Opciones (placeholder)");
+        if (canvasOptions != null) SetCanvas(canvasOptions, true);
     }
 }
