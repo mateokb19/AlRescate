@@ -23,7 +23,7 @@ public class GachaUIController : MonoBehaviour
 
     [Header("Animacion")]
     public RevealAnimationController revealController;
-    public Animator gachaMachineAnimator;
+    public GachaMachineShake gachaMachineShake;
 
     [Header("Bono de bienvenida")]
     public GameObject welcomePanel;
@@ -100,8 +100,7 @@ public class GachaUIController : MonoBehaviour
     {
         if (GachaManager.Instance.TryPullX1(out var r))
         {
-            if (gachaMachineAnimator != null)
-                gachaMachineAnimator.SetTrigger("TrigSpin");
+            if (gachaMachineShake != null) gachaMachineShake.PlaySpin();
             StartCoroutine(revealController.PlayX1(r));
         }
     }
@@ -110,8 +109,7 @@ public class GachaUIController : MonoBehaviour
     {
         if (GachaManager.Instance.TryPullX10(out var results))
         {
-            if (gachaMachineAnimator != null)
-                gachaMachineAnimator.SetTrigger("TrigSpin");
+            if (gachaMachineShake != null) gachaMachineShake.PlaySpin();
             StartCoroutine(revealController.PlayX10(results));
         }
     }

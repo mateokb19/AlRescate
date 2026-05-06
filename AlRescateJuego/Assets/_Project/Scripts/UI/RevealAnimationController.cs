@@ -15,6 +15,8 @@ public class RevealAnimationController : MonoBehaviour
 
     [Header("Particulas")]
     public ParticleSystem fxCommon, fxRare, fxEpic, fxLegendary;
+    [Tooltip("Arrastra aqui Mat_Particle_Additive desde el Project panel")]
+    public Material particleMaterial;
 
     [Header("Colores del haz")]
     public Color colorBlue = new Color(0.30f, 0.45f, 1f);
@@ -22,25 +24,20 @@ public class RevealAnimationController : MonoBehaviour
     public Color colorGold = new Color(1f, 0.85f, 0.10f);
 
     private bool _skipRequested;
-    private Material _particleMat;
 
     void Start()
     {
         if (btnSkip != null) btnSkip.onClick.AddListener(() => _skipRequested = true);
         if (btnClose != null) btnClose.onClick.AddListener(Close);
 
-        var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
-                  ?? Shader.Find("Sprites/Default");
-        if (shader != null) _particleMat = new Material(shader);
-
         foreach (var fx in new[] { fxCommon, fxRare, fxEpic, fxLegendary })
         {
             if (fx == null) continue;
-            if (_particleMat != null)
+            if (particleMaterial != null)
             {
                 var rend = fx.GetComponent<ParticleSystemRenderer>();
                 if (rend != null)
-                    rend.material = _particleMat;
+                    rend.material = particleMaterial;
             }
             fx.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
