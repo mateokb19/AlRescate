@@ -19,12 +19,20 @@ public class ResultCardView : MonoBehaviour
 
         if (r.isPet && r.pet != null)
         {
-            if (artworkImage != null) artworkImage.sprite = r.pet.iconLarge;
+            if (artworkImage != null)
+            {
+                artworkImage.sprite = r.pet.iconLarge;
+                artworkImage.color = Color.white;
+            }
             nameText.text = r.pet.displayName + (r.isDuplicate ? $"\n(+{r.gemsAwarded} Gemas)" : "");
         }
         else if (r.item != null)
         {
-            if (artworkImage != null) artworkImage.sprite = r.item.icon;
+            if (artworkImage != null)
+            {
+                artworkImage.sprite = r.item.icon;
+                artworkImage.color = Color.white;
+            }
             nameText.text = r.item.displayName;
         }
 

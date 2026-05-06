@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: "Vendaje B\xE1sico"
   description: 
   rarity: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 6c1747be76e3c594392dabf6ea03871c, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0

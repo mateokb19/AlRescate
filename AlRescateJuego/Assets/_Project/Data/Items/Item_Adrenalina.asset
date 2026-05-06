@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Adrenalina
   description: 
   rarity: 2
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 41dc8e6b49b837146a3dab321405425b, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0

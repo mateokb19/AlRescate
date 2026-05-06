@@ -29,7 +29,7 @@ public class CollectionCell : MonoBehaviour
         if (artwork != null)
         {
             artwork.sprite = i.icon;
-            artwork.color = Color.white;
+            artwork.color = qty > 0 ? Color.white : Color.black;
         }
         if (silhouetteOverlay != null) silhouetteOverlay.SetActive(qty <= 0);
         if (label != null) label.text = qty > 0 ? $"{i.displayName} x{qty}" : "???";

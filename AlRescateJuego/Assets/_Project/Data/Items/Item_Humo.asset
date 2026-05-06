@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Granada de Humo
   description: 
   rarity: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f917a64d1c3f631479da08ee2ccaac87, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0

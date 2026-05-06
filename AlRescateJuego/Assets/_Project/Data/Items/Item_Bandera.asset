@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Bandera Cruz Roja
   description: 
   rarity: 2
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7e27b2be6c85d7b4398d09126bbd7789, type: 3}
   effectType: 0
   duration: 0
   magnitude: 0
