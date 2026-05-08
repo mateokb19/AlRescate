@@ -437,7 +437,8 @@ public static class SceneBuilder
         // Agregar o actualizar CollectionUI
         var collUI = colRoot.gameObject.GetComponent<CollectionUI>();
         if (collUI == null) collUI = colRoot.gameObject.AddComponent<CollectionUI>();
-        collUI.gridContent = contentRect;
+        collUI.gridPets = contentRect;
+        collUI.gridItems = contentRect;
 
         // Botón cerrar
         var existingClose = canvasCol.transform.Find("CollectionRoot/Btn_Close_Collection");

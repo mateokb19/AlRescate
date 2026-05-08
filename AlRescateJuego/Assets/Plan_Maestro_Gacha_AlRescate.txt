@@ -4,7 +4,7 @@ Unity 2022.3.62f2 LTS - URP 2D - Input System nuevo
 Documento tecnico exhaustivo - listo para implementacion desde cero
 
 ================================================================================
-PROGRESO ACTUAL  (ultima actualizacion: 2026-05-03)
+PROGRESO ACTUAL  (ultima actualizacion: 2026-05-07)
 ================================================================================
 
 [COMPLETADO] ETAPA 1  - Configuracion del proyecto Unity
@@ -82,7 +82,27 @@ PROGRESO ACTUAL  (ultima actualizacion: 2026-05-03)
                          como comportamiento correcto (no bug).
                          Helpers de debug agregados: dar gemas, 89 tiradas, verificar hard pity,
                          mostrar/resetear pity.
-[PENDIENTE]  ETAPA 20 - Pulido visual, build PC y Android
+[EN CURSO]   ETAPA 20 - Pulido visual, build PC y Android
+                         -- MASCOTA FLOTANTE EN HUB (BLOQUEADO, pendiente debug) --
+                         Coleccion: headers "MASCOTAS" y "OBJETOS" agregados con seccion
+                         separada por tipo. ContentSizeFitter en ambas secciones. OK.
+                         Assets de mascotas creados: Foxy.prefab corregido (color blanco,
+                         SortingLayer Pets, scale 2x2, posicion 0,0,0). Prefabs nuevos
+                         creados via YAML: Pico/Drako/Lumi/Aurora.prefab con sprites
+                         correctos y SortingLayerID 364060125. PetData assets actualizados
+                         para apuntar cada uno a su propio prefab.
+                         PetController y toda la logica de eventos (OnPetEquipped) estaban
+                         correctos desde etapa 13; sin cambios de codigo necesarios.
+                         PROBLEMA PENDIENTE: la mascota no aparece en el hub al equipar.
+                         Hipotesis: (1) save tiene firstLaunch=false por lo que
+                         TryGiveWelcomeBonus no corre y el jugador no tiene mascotas;
+                         (2) posible problema con los prefabs creados via YAML
+                         (NativeFormatImporter en lugar de PrefabImporter); (3) causa
+                         raiz aun sin confirmar con logs de Console.
+                         Pendiente: verificar logs [PetController] en Console, confirmar
+                         que "Debug: Dar todas las mascotas" concede mascotas (metodo
+                         ContextMenu agregado a PlayerInventory), y que al equipar desde
+                         Coleccion aparece Foxy(Clone) como hijo de PetSpawnPoint.
 
 NOTAS TECNICAS:
 - Escenas generadas via SceneBuilder.cs (menu AlRescate en Unity)
@@ -100,7 +120,12 @@ NOTAS TECNICAS:
 - GachaUIController tiene campo starterPet (Pet_Foxy) y welcomeCloseBtn (Btn_WelcomeClose)
 - GachaUIController tiene btnCloseShop (Btn_Close_Shop) y btnCloseCollection (Btn_Close_Collection)
 - Foxy.png en Assets/_Project/Sprites/Pets/ con guid 228abc117023349448d8902ec1286afd
-- PetSpawnPoint en escena: position (-3, 0, 0), scale (1,1,1), spawnPoint auto-referenciado
+- PetSpawnPoint en escena: position (-3.5, 1.5, 0), scale (1,1,1), spawnPoint auto-referenciado
+- PlayerInventory tiene metodo [ContextMenu("Debug: Dar todas las mascotas")] para pruebas en Play Mode
+- Prefabs Pico/Drako/Lumi/Aurora creados via YAML con NativeFormatImporter; si Unity da warnings
+  al importar, recrearlos desde el Editor (drag-to-Project) es mas seguro que el YAML manual
+- SaveSystem: guarda en PlayerPrefs key "SaveData_v1" Y en savedata.json (persistentDataPath)
+  Para reset completo borrar ambos; SaveSystem.Reset() ya existe para hacerlo desde codigo
 - ParticleFX_Container es objeto raiz en escena (NO hijo de ningun Canvas)
 - ResultCard.prefab: Frame_Glow es primer hijo (detras), ShimmerMask es ultimo hijo con RectMask2D
 - Global Volume con Bloom NO configurado (menu Volume no disponible en esta instalacion de URP)

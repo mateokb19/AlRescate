@@ -103,4 +103,12 @@ public class PlayerInventory : MonoBehaviour
         var st = SaveSystem.Current.itemStacks.Find(s => s.itemId == itemId);
         return st?.quantity ?? 0;
     }
+
+    [ContextMenu("Debug: Dar todas las mascotas")]
+    private void Debug_GrantAllPets()
+    {
+        foreach (var pet in database.AllPets())
+            GrantPet(pet, out _);
+        Debug.Log("[Debug] Todas las mascotas concedidas.");
+    }
 }
