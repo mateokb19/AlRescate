@@ -142,7 +142,12 @@ public static class SceneBuilder
         // Pet spawn point
         var petSpawn = new GameObject("PetSpawnPoint");
         petSpawn.transform.position = new Vector3(-3f, 0f, 0f);
-        petSpawn.AddComponent<PetController>();
+        var petSpawnAnchor = new GameObject("SpawnAnchor");
+        petSpawnAnchor.transform.SetParent(petSpawn.transform, false);
+        var petCtrl = petSpawn.AddComponent<PetController>();
+        var petCtrlSO = new SerializedObject(petCtrl);
+        petCtrlSO.FindProperty("spawnPoint").objectReferenceValue = petSpawnAnchor.transform;
+        petCtrlSO.ApplyModifiedProperties();
 
         // Particle container
         new GameObject("ParticleFX_Container");
@@ -367,6 +372,158 @@ public static class SceneBuilder
     }
 
     // ─────────────────────────────────────────────────────────────
+    // VINCULAR PREFABS DE MASCOTAS
+    // ─────────────────────────────────────────────────────────────
+    [MenuItem("AlRescate/Configurar Animator GachaMachine")]
+    public static void SetupGachaMachineAnimator()
+    {
+        // 1) Prioridad: objeto seleccionado en la Hierarchy
+        GameObject machine = Selection.activeGameObject;
+
+        // 2) Fallback: buscar por nombre o por sprite "gacha"
+        if (machine == null)
+        {
+            foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (!go.scene.isLoaded) continue;
+                string n = go.name.ToLower();
+                if (n.Contains("gachamachine") || n.Contains("maquina") || n.Contains("gachapon") || n.Contains("gacha_machine"))
+                { machine = go; break; }
+            }
+        }
+
+        if (machine == null)
+        {
+            EditorUtility.DisplayDialog("AlRescate",
+                "No encontre el GameObject de la maquina.\n\n" +
+                "SOLUCION: Selecciona en la Hierarchy el GameObject que tiene el sprite de la gachapon (los zorritos), " +
+                "luego vuelve a ejecutar este menu.", "OK");
+            return;
+        }
+
+        var animCtrl = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(
+            "Assets/_Project/Animations/Machine/GachaMachine_AnimatorController.controller");
+        if (animCtrl == null)
+        {
+            EditorUtility.DisplayDialog("AlRescate", "No se encontro GachaMachine_AnimatorController.controller", "OK");
+            return;
+        }
+
+        var animator = machine.GetComponent<Animator>() ?? machine.AddComponent<Animator>();
+        animator.runtimeAnimatorController = animCtrl;
+        animator.applyRootMotion = false;
+
+        var shake = machine.GetComponent<GachaMachineShake>() ?? machine.AddComponent<GachaMachineShake>();
+        var so = new SerializedObject(shake);
+        so.FindProperty("animator").objectReferenceValue = animator;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(machine);
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+
+        // Tambien vincular en el HubController (campo gachaMachineShake) si existe
+        var hub = Object.FindObjectOfType<GachaUIController>();
+        if (hub != null && hub.gachaMachineShake == null)
+        {
+            var hubSo = new SerializedObject(hub);
+            hubSo.FindProperty("gachaMachineShake").objectReferenceValue = shake;
+            hubSo.ApplyModifiedProperties();
+            EditorUtility.SetDirty(hub);
+        }
+
+        Debug.Log($"[SceneBuilder] Animator configurado en '{machine.name}'. Guarda la escena (Ctrl+S).");
+        EditorUtility.DisplayDialog("AlRescate",
+            $"Animator configurado en '{machine.name}'.\n" +
+            "- Controller: GachaMachine_AnimatorController\n" +
+            "- GachaMachineShake.animator vinculado\n" +
+            "- HubController.gachaMachineShake vinculado (si estaba vacio)\n\n" +
+            "Guarda la escena con Ctrl+S.", "OK");
+    }
+
+    [MenuItem("AlRescate/Recrear Prefabs Corruptos")]
+    public static void RecreatePetPrefabs()
+    {
+        // sprite GUID → nombre del prefab
+        var pets = new[]
+        {
+            ("Aurora", "f6e538f0829175c4caf921b75b1cc3d4"),
+            ("Drako",  "7bcfe8456efb07e4fa2fc8237846ec58"),
+            ("Lumi",   "123137956a33540469512dbdbbef62ef"),
+            ("Pico",   "1eb28cc5446e4ec45a3b213e4e573061"),
+        };
+
+        int ok = 0;
+        foreach (var (petName, spriteGuid) in pets)
+        {
+            string prefabPath = $"Assets/_Project/Prefabs/Pets/{petName}.prefab";
+
+            // Cargar sprite por GUID
+            string spritePath = AssetDatabase.GUIDToAssetPath(spriteGuid);
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+            if (sprite == null)
+            {
+                Debug.LogError($"[SceneBuilder] No se encontró sprite para {petName} (guid={spriteGuid})");
+                continue;
+            }
+
+            // Crear GameObject temporal, construir prefab y guardarlo
+            var go = new GameObject(petName);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.sortingOrder = 3;
+
+            PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
+            Object.DestroyImmediate(go);
+
+            Debug.Log($"[SceneBuilder] Prefab recreado: {prefabPath}");
+            ok++;
+        }
+
+        AssetDatabase.Refresh();
+        if (ok > 0) LinkPetPrefabs();
+
+        EditorUtility.DisplayDialog("AlRescate",
+            $"{ok} prefab(s) recreados y vinculados.\nRevisa la consola.", "OK");
+    }
+
+    [MenuItem("AlRescate/Vincular Prefabs de Mascotas")]
+    public static void LinkPetPrefabs()
+    {
+        // Reimportar todos los prefabs de mascotas para que Unity los registre en su Library
+        foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/_Project/Prefabs/Pets" }))
+            AssetDatabase.ImportAsset(AssetDatabase.GUIDToAssetPath(guid), ImportAssetOptions.ForceUpdate);
+
+        int ok = 0, fail = 0;
+        foreach (var petGuid in AssetDatabase.FindAssets("t:PetData", new[] { "Assets/_Project/Data/Pets" }))
+        {
+            var petPath = AssetDatabase.GUIDToAssetPath(petGuid);
+            var petData = AssetDatabase.LoadAssetAtPath<PetData>(petPath);
+            if (petData == null) { Debug.LogError($"[SceneBuilder] No se pudo cargar PetData en {petPath}"); fail++; continue; }
+
+            // Cargar prefab por ruta directa (no depende del índice de Unity)
+            string prefabPath = $"Assets/_Project/Prefabs/Pets/{petData.displayName}.prefab";
+            AssetDatabase.ImportAsset(prefabPath, ImportAssetOptions.ForceUpdate);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                Debug.LogError($"[SceneBuilder] No se pudo cargar '{prefabPath}'. ¿Existe el archivo?");
+                fail++; continue;
+            }
+
+            var so = new SerializedObject(petData);
+            so.FindProperty("petPrefab").objectReferenceValue = prefab;
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(petData);
+            Debug.Log($"[SceneBuilder] Vinculado: {petData.name} → {prefab.name}");
+            ok++;
+        }
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        EditorUtility.DisplayDialog("AlRescate",
+            $"Prefabs vinculados: {ok} OK, {fail} errores.\nRevisa la consola para detalles.", "OK");
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // REPARAR COLECCION
     // ─────────────────────────────────────────────────────────────
     [MenuItem("AlRescate/Reparar Panel Coleccion")]
@@ -459,6 +616,46 @@ public static class SceneBuilder
         EditorUtility.DisplayDialog("AlRescate",
             "Panel Coleccion reparado.\n\nAhora en el componente CollectionUI de CollectionRoot asigna:\n" +
             "• Database → GachaDatabase\n• Cell Prefab → CollectionCell", "OK");
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // REPARAR PET CONTROLLER
+    // ─────────────────────────────────────────────────────────────
+    [MenuItem("AlRescate/Agregar PetController a la escena")]
+    public static void AddPetController()
+    {
+        // Buscar o crear PetSpawnPoint
+        var existing = GameObject.Find("PetSpawnPoint");
+        if (existing != null)
+        {
+            var existingPC = existing.GetComponent<PetController>();
+            if (existingPC != null)
+            {
+                Debug.Log("[SceneBuilder] PetController ya existe en la escena.");
+                EditorUtility.DisplayDialog("AlRescate", "PetController ya existe en la escena.", "OK");
+                return;
+            }
+        }
+
+        var petSpawnGO = existing ?? new GameObject("PetSpawnPoint");
+        petSpawnGO.transform.position = new Vector3(-3f, 0f, 0f);
+
+        // Crear hijo como punto de spawn real
+        var spawnChild = new GameObject("SpawnAnchor");
+        spawnChild.transform.SetParent(petSpawnGO.transform, false);
+
+        var pc = petSpawnGO.AddComponent<PetController>();
+
+        // Asignar spawnPoint via SerializedObject para que quede guardado en la escena
+        var so = new SerializedObject(pc);
+        so.FindProperty("spawnPoint").objectReferenceValue = spawnChild.transform;
+        so.ApplyModifiedProperties();
+
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        Debug.Log("[SceneBuilder] PetController agregado. SpawnAnchor en posición (-3, 0, 0). Guarda la escena (Ctrl+S).");
+        EditorUtility.DisplayDialog("AlRescate",
+            "PetController agregado correctamente.\n\nSe creó 'PetSpawnPoint' en posición (-3, 0, 0).\n" +
+            "Muévelo donde quieras que aparezca la mascota y guarda la escena (Ctrl+S).", "OK");
     }
 
     // ─────────────────────────────────────────────────────────────

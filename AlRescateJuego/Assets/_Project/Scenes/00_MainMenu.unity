@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 100184440}
   - component: {fileID: 100184439}
   m_Layer: 0
-  m_Name: "Txt_Mar\xEDa"
+  m_Name: Txt_LG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -264,7 +264,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Mar\xEDa"
+  m_text: "Laura Gonz\xE1lez"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 0}
   m_sharedMaterial: {fileID: 0}
@@ -421,7 +421,7 @@ GameObject:
   - component: {fileID: 517848152}
   - component: {fileID: 517848151}
   m_Layer: 0
-  m_Name: Txt_Toro
+  m_Name: Txt_NR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -466,7 +466,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Toro
+  m_text: "Nicol\xE1s Ram\xEDrez"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 0}
   m_sharedMaterial: {fileID: 0}
@@ -2108,7 +2108,7 @@ GameObject:
   - component: {fileID: 1322519503}
   - component: {fileID: 1322519502}
   m_Layer: 0
-  m_Name: Txt_Pepe
+  m_Name: Txt_MP
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2153,7 +2153,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Pepe
+  m_text: "Mateo Pati\xF1o"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 0}
   m_sharedMaterial: {fileID: 0}
@@ -2580,7 +2580,7 @@ GameObject:
   - component: {fileID: 1492643238}
   - component: {fileID: 1492643237}
   m_Layer: 0
-  m_Name: Txt_Ana
+  m_Name: Txt_VA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2625,7 +2625,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Ana
+  m_text: Valentina Andrade
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 0}
   m_sharedMaterial: {fileID: 0}
@@ -3466,7 +3466,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2715"
+  m_text: X
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 0}
   m_sharedMaterial: {fileID: 0}

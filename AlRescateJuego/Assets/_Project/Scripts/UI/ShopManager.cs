@@ -22,10 +22,13 @@ public class ShopManager : MonoBehaviour
     public Transform packageGrid;
     public GameObject packageCardPrefab;
     public Button btnClose;
+    [Header("Feedback (opcional)")]
+    public TextMeshProUGUI feedbackText;
 
     void Start()
     {
         if (btnClose != null) btnClose.onClick.AddListener(Close);
+        if (feedbackText != null) feedbackText.gameObject.SetActive(false);
         BuildList();
     }
 
@@ -42,9 +45,28 @@ public class ShopManager : MonoBehaviour
 
     public void OnBuy(GemPackage pkg)
     {
-        Debug.Log($"[SHOP] El jugador intento comprar {pkg.gems} Gemas por ${pkg.priceCOP} COP. " +
-                  "Aqui se integraria el sistema de pago real con la pasarela de Cruz Roja.");
         AudioManager.Instance.Play("sfx_shop_click");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        PlayerInventory.Instance.AddGems(pkg.gems);
+        ShowFeedback($"+{pkg.gems:N0} Gemas");
+        Debug.Log($"[SHOP] MODO PRUEBA: +{pkg.gems} Gemas otorgadas.");
+#else
+        Debug.Log($"[SHOP] Compra de {pkg.gems} Gemas por ${pkg.priceCOP} COP — pasarela de pago pendiente.");
+#endif
+    }
+
+    void ShowFeedback(string msg)
+    {
+        if (feedbackText == null) return;
+        feedbackText.text = msg;
+        feedbackText.gameObject.SetActive(true);
+        CancelInvoke(nameof(HideFeedback));
+        Invoke(nameof(HideFeedback), 2f);
+    }
+
+    void HideFeedback()
+    {
+        if (feedbackText != null) feedbackText.gameObject.SetActive(false);
     }
 
     public void Close()

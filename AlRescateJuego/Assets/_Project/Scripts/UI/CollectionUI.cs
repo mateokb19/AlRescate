@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,10 +10,10 @@ public class CollectionUI : MonoBehaviour
     public CollectionDetailView detailView;
 
     [Header("Secciones")]
-    public GameObject sectionPets;   // GameObject padre de la sección mascotas
-    public Transform gridPets;       // Grid Layout Group donde van las celdas de mascotas
-    public GameObject sectionItems;  // GameObject padre de la sección objetos
-    public Transform gridItems;      // Grid Layout Group donde van las celdas de objetos
+    public GameObject sectionPets;
+    public Transform gridPets;
+    public GameObject sectionItems;
+    public Transform gridItems;
 
     [Header("Filtros")]
     public Toggle togglePets, toggleItems;
@@ -20,7 +21,19 @@ public class CollectionUI : MonoBehaviour
 
     void OnEnable()
     {
+        StopAllCoroutines();
+        StartCoroutine(RebuildNextFrame());
+    }
+
+    IEnumerator RebuildNextFrame()
+    {
+        // Esperar a que el Canvas calcule el tamaño del viewport antes de instanciar celdas
+        yield return null;
+        Canvas.ForceUpdateCanvases();
         Rebuild();
+        // Segundo pase: tras instanciar todas las celdas, refrescar los layouts contenedores
+        yield return null;
+        ForceFullLayoutRebuild();
     }
 
     public void Rebuild()
@@ -50,11 +63,24 @@ public class CollectionUI : MonoBehaviour
         foreach (var i in itemList)
             AddCellItem(i, inv.GetItemQty(i.id));
 
-        if (gridPets != null)
+        ForceFullLayoutRebuild();
+    }
+
+    private void ForceFullLayoutRebuild()
+    {
+        // Reconstruir layouts de adentro hacia afuera: grid → content → viewport → root
+        RebuildOn(gridPets);
+        RebuildOn(gridItems);
+    }
+
+    private void RebuildOn(Transform t)
+    {
+        if (t == null) return;
+        var rt = t as RectTransform;
+        while (rt != null)
         {
-            var contentRT = gridPets.parent?.parent as RectTransform;
-            if (contentRT != null)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(contentRT);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
+            rt = rt.parent as RectTransform;
         }
     }
 
