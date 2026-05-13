@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class MainMenuController : MonoBehaviour
 {
     public Button btnPlay, btnCollection, btnOptions, btnCredits, btnQuit;
+    public GameObject creditsPanel;
 
     void Start()
     {
@@ -15,7 +16,7 @@ public class MainMenuController : MonoBehaviour
             SceneManager.LoadScene("01_GachaHub");
         });
         btnOptions.onClick.AddListener(() => Debug.Log("Opciones (placeholder)"));
-        btnCredits.onClick.AddListener(() => Debug.Log("Creditos (placeholder)"));
+        btnCredits.onClick.AddListener(() => { if (creditsPanel != null) creditsPanel.SetActive(true); });
         btnQuit.onClick.AddListener(() =>
         {
 #if UNITY_EDITOR

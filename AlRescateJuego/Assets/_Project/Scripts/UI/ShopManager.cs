@@ -10,7 +10,7 @@ public class ShopManager : MonoBehaviour
     {
         public string id;
         public int gems;
-        public float priceMXN;
+        public float priceCOP;
         public string label;
         public string bonusText;
     }
@@ -42,7 +42,7 @@ public class ShopManager : MonoBehaviour
 
     public void OnBuy(GemPackage pkg)
     {
-        Debug.Log($"[SHOP] El jugador intento comprar {pkg.gems} Gemas por ${pkg.priceMXN} MXN. " +
+        Debug.Log($"[SHOP] El jugador intento comprar {pkg.gems} Gemas por ${pkg.priceCOP} COP. " +
                   "Aqui se integraria el sistema de pago real con la pasarela de Cruz Roja.");
         AudioManager.Instance.Play("sfx_shop_click");
     }
@@ -54,17 +54,3 @@ public class ShopManager : MonoBehaviour
     }
 }
 
-public class GemPackageCard : MonoBehaviour
-{
-    public TextMeshProUGUI gemsText, priceText, bonusText;
-    public Button buyButton;
-
-    public void Setup(ShopManager.GemPackage pkg, System.Action<ShopManager.GemPackage> onBuy)
-    {
-        if (gemsText != null) gemsText.text = pkg.gems.ToString("N0") + " Gemas";
-        if (priceText != null) priceText.text = "$" + pkg.priceMXN.ToString("N0") + " MXN";
-        if (bonusText != null) bonusText.text = pkg.bonusText;
-        buyButton.onClick.RemoveAllListeners();
-        buyButton.onClick.AddListener(() => onBuy(pkg));
-    }
-}

@@ -462,6 +462,123 @@ public static class SceneBuilder
     }
 
     // ─────────────────────────────────────────────────────────────
+    // PANEL CREDITOS
+    // ─────────────────────────────────────────────────────────────
+    [MenuItem("AlRescate/Crear Panel Creditos (MainMenu)")]
+    public static void CreateCreditsPanel()
+    {
+        // Buscar Canvas_MainMenu en la escena activa (incluyendo inactivos)
+        GameObject canvasMainMenu = null;
+        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+        {
+            if (go.name == "Canvas_MainMenu" && go.scene.isLoaded)
+            { canvasMainMenu = go; break; }
+        }
+        if (canvasMainMenu == null)
+        {
+            EditorUtility.DisplayDialog("AlRescate", "No se encontró Canvas_MainMenu.\nAbre la escena 00_MainMenu primero.", "OK");
+            return;
+        }
+
+        // Eliminar panel previo si existe
+        var existing = canvasMainMenu.transform.Find("CreditsPanel");
+        if (existing != null) Object.DestroyImmediate(existing.gameObject);
+
+        // ── CreditsPanel (overlay oscuro, full screen)
+        var panel = CreateUIObject("CreditsPanel", canvasMainMenu.transform);
+        var panelRT = panel.GetComponent<RectTransform>();
+        panelRT.anchorMin = Vector2.zero;
+        panelRT.anchorMax = Vector2.one;
+        panelRT.sizeDelta = Vector2.zero;
+        panelRT.anchoredPosition = Vector2.zero;
+        var panelImg = panel.AddComponent<Image>();
+        panelImg.color = new Color(0f, 0f, 0f, 0.88f);
+        var scroller = panel.AddComponent<CreditsScroller>();
+        scroller.scrollSpeed = 80f;
+        panel.SetActive(false);
+
+        // ── CreditsContent (sube de abajo hacia arriba)
+        var content = CreateUIObject("CreditsContent", panel.transform);
+        var contentRT = content.GetComponent<RectTransform>();
+        contentRT.anchorMin = new Vector2(0.5f, 0f);
+        contentRT.anchorMax = new Vector2(0.5f, 0f);
+        contentRT.pivot = new Vector2(0.5f, 0f);
+        contentRT.sizeDelta = new Vector2(700f, 0f);
+        contentRT.anchoredPosition = Vector2.zero;
+        var vlg = content.AddComponent<VerticalLayoutGroup>();
+        vlg.childAlignment = TextAnchor.UpperCenter;
+        vlg.spacing = 40f;
+        vlg.padding = new RectOffset(0, 0, 60, 120);
+        vlg.childForceExpandWidth = true;
+        vlg.childForceExpandHeight = false;
+        vlg.childControlWidth = true;
+        vlg.childControlHeight = true;
+        var csf = content.AddComponent<ContentSizeFitter>();
+        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        scroller.creditsContent = contentRT;
+
+        // Título
+        AddCreditLine(content.transform, "CRÉDITOS", 56, new Color(0.96f, 0.62f, 0.04f));
+        // Separador visual (espacio en blanco)
+        AddCreditLine(content.transform, "", 24, Color.white);
+        // Integrantes
+        AddCreditLine(content.transform, "Ana", 44, Color.white);
+        AddCreditLine(content.transform, "María", 44, Color.white);
+        AddCreditLine(content.transform, "Pepe", 44, Color.white);
+        AddCreditLine(content.transform, "Toro", 44, Color.white);
+        // Pie
+        AddCreditLine(content.transform, "", 24, Color.white);
+        AddCreditLine(content.transform, "Al Rescate — Cruz Roja Colombia", 28, new Color(0.85f, 0.15f, 0.15f));
+
+        // ── Botón Cerrar (esquina superior derecha)
+        var btnClose = CreateButton("Btn_CloseCredits", "✕", panel.transform, new Vector2(80f, 80f));
+        var bRect = btnClose.GetComponent<RectTransform>();
+        bRect.anchorMin = new Vector2(1f, 1f);
+        bRect.anchorMax = new Vector2(1f, 1f);
+        bRect.pivot = new Vector2(1f, 1f);
+        bRect.anchoredPosition = new Vector2(-20f, -20f);
+        scroller.btnClose = btnClose.GetComponent<Button>();
+
+        // ── Conectar en MainMenuController si existe
+        var mmCtrl = Object.FindObjectOfType<MainMenuController>();
+        if (mmCtrl != null)
+        {
+            mmCtrl.creditsPanel = panel;
+            EditorUtility.SetDirty(mmCtrl);
+        }
+
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        Debug.Log("[SceneBuilder] Panel de Créditos creado.");
+        EditorUtility.DisplayDialog("AlRescate",
+            "Panel de Créditos creado correctamente.\n\nGuarda la escena (Ctrl+S).", "OK");
+    }
+
+    static void AddCreditLine(Transform parent, string text, int fontSize, Color color)
+    {
+        var go = CreateUIObject("Txt_" + (string.IsNullOrEmpty(text) ? "Space" : text.Replace(" ", "_")), parent);
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = text;
+        tmp.fontSize = fontSize;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = color;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // RESET SAVE
+    // ─────────────────────────────────────────────────────────────
+    [MenuItem("AlRescate/Resetear Datos de Guardado")]
+    public static void ResetSaveData()
+    {
+        string jsonPath = System.IO.Path.Combine(Application.persistentDataPath, "savedata.json");
+        if (System.IO.File.Exists(jsonPath))
+            System.IO.File.Delete(jsonPath);
+        PlayerPrefs.DeleteKey("SaveData_v1");
+        PlayerPrefs.Save();
+        Debug.Log("[SceneBuilder] Save reseteado. firstLaunch = true en el próximo Play.");
+        EditorUtility.DisplayDialog("AlRescate", "Save borrado correctamente.\n\nLa próxima vez que entres al juego verás la pantalla de bienvenida.", "OK");
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // BUILD SETTINGS
     // ─────────────────────────────────────────────────────────────
     static void SetupBuildSettings()

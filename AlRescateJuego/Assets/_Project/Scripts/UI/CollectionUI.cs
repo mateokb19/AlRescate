@@ -49,13 +49,24 @@ public class CollectionUI : MonoBehaviour
         if (sectionItems != null) sectionItems.SetActive(itemList.Count > 0);
         foreach (var i in itemList)
             AddCellItem(i, inv.GetItemQty(i.id));
+
+        if (gridPets != null)
+        {
+            var contentRT = gridPets.parent?.parent as RectTransform;
+            if (contentRT != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(contentRT);
+        }
     }
 
     private void ClearGrid(Transform grid)
     {
         if (grid == null) return;
         for (int i = grid.childCount - 1; i >= 0; i--)
-            Destroy(grid.GetChild(i).gameObject);
+        {
+            var child = grid.GetChild(i);
+            child.SetParent(null);
+            Destroy(child.gameObject);
+        }
     }
 
     private bool PassesRarityFilter(Rarity r)
