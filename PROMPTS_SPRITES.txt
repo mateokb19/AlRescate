@@ -1,0 +1,561 @@
+================================================================================
+PROMPTS PARA SPRITES DE ALRESCATE - LISTO PARA COPIAR Y PEGAR
+================================================================================
+Estetica unificada: Cartoon vector limpio (estilo actual mejorado)
+Modelo objetivo: DALL-E 3 / GPT Image / Gemini / Nano Banana
+Paleta canonica del juego (RarityPalette.cs):
+  Common    -> #9CA4B0 (gris azulado)
+  Rare      -> #12BB82 (verde esmeralda)
+  Epic      -> #8D5CF0 (purpura vibrante)
+  Legendary -> #F59E04 (dorado ambar)
+
+INSTRUCCIONES DE USO:
+1. Copia el ANCLAJE DE ESTILO al inicio de cada prompt para mantener coherencia.
+2. Pide PNG con fondo transparente, 1024x1024 (salvo donde se indique otra cosa).
+3. Si el modelo no respeta transparencia, agrega: "pure transparent alpha
+   background, not white, not checkered".
+4. Los sprites marcados "white only, engine will tint" deben quedar SIN color.
+================================================================================
+
+
+================================================================================
+ANCLAJE DE ESTILO (PEGAR AL INICIO DE CADA PROMPT)
+================================================================================
+
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines
+(2-4 px equivalent), flat color fills with soft cel-shaded highlights and a
+single drop shadow underneath, saturated yet friendly palette, slightly chunky
+and rounded shapes, hand-drawn but crisp digital finish. Centered composition,
+transparent background, no text, no watermark, no signature. Match the look of
+premium casual mobile gacha games like Cookie Run: Kingdom or Brawl Stars icons
+but slightly softer.
+
+
+
+================================================================================
+SECCION A - BOTONES
+Carpeta destino: AlRescateJuego/Assets/_Project/Sprites/UI/Buttons/
+================================================================================
+
+
+--------------------------------------------------------------------------------
+A1 - btn_play.png  (Boton principal "JUGAR" - MainMenu)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights and a single drop shadow,
+saturated yet friendly palette, slightly chunky and rounded shapes, hand-drawn
+but crisp digital finish. Design a large pill-shaped primary call-to-action
+button. Bright emerald green body (#22C55E) with a slightly darker green bottom
+edge for a chunky 3D feel, glossy highlight stripe across the top half, thick
+warm-white outline (4 px equivalent). Centered, no text inside (text will be
+added in-game). Aspect 3:1, transparent background, leave 6% padding around the
+shape. Include a subtle inner glow suggesting it is the most important button
+on screen.
+
+
+--------------------------------------------------------------------------------
+A2 - btn_secondary.png  (Boton secundario - Collection / Options)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Pill-shaped secondary button, cool slate blue body (#4B6BFB) with deeper navy
+bottom edge, glossy highlight on top, white outline thinner than the primary
+CTA (3 px equiv). Less prominent than the play button. Aspect 3:1, transparent
+background, no text, centered.
+
+
+--------------------------------------------------------------------------------
+A3 - btn_quit.png  (Boton salir - rojo)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Pill-shaped destructive button, warm coral red body (#EF4444) with darker
+maroon bottom edge, glossy top highlight, white outline. Slight worry-free
+roundness so it does not feel aggressive. Aspect 3:1, transparent background,
+no text, centered.
+
+
+--------------------------------------------------------------------------------
+A4 - btn_pull_x1.png  (Tirada simple del gachapon)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Square-rounded button (1:1, rounded corners ~20%) for a gacha pull. Body in
+turquoise (#06B6D4) with darker bottom edge, glossy diagonal highlight, thick
+white outline. In the center, a stylized white silhouette of a single gachapon
+capsule (oval, two halves). Subtle sparkle dots around the capsule.
+Transparent background.
+
+
+--------------------------------------------------------------------------------
+A5 - btn_pull_x10.png  (Tirada multiple dorada)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Square-rounded button (1:1) for a 10-pull. Body in legendary gold (#F59E04)
+with deeper amber bottom edge, glossy highlight, thick white outline. In the
+center, a fan of three overlapping gachapon capsule silhouettes in white. Add
+a confetti-burst of small gold sparkles behind the capsules to feel premium.
+Leave the center clean (no text - it will be added in-game). Transparent
+background.
+
+
+--------------------------------------------------------------------------------
+A6 - btn_shop.png  (Boton tienda)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Square-rounded button (1:1), body in royal purple (#8D5CF0) with deeper indigo
+bottom edge, glossy highlight, white outline. Centered icon: a stylized white
+shopping bag with a small gem cutout on the front. Transparent background,
+no text.
+
+
+--------------------------------------------------------------------------------
+A7 - btn_collection.png  (Boton coleccion)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Square-rounded button (1:1), body in friendly teal (#14B8A6) with darker
+bottom edge, glossy top highlight, white outline. Centered icon: a 2x2 grid
+of small white rounded squares (representing a collection album). Transparent
+background, no text.
+
+
+--------------------------------------------------------------------------------
+A8 - btn_options.png  (Boton opciones - engranaje)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Circular button, body in neutral cool gray (#64748B) with darker bottom edge,
+glossy highlight, white outline. Centered icon: a stylized white gear with 8
+chunky rounded teeth and a circular hole in the middle. Transparent background,
+no text.
+
+
+--------------------------------------------------------------------------------
+A9 - btn_back_arrow.png  (Flecha atras - esquina top-left)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Small circular button, body in soft warm white (#F8FAFC) with light gray
+bottom edge, drop shadow. Centered icon: a chunky black left-pointing arrow
+with rounded line caps. Transparent background, no text.
+
+
+--------------------------------------------------------------------------------
+A10 - btn_buy.png  (Boton comprar - tarjeta de tienda)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Pill-shaped button, body in vibrant green (#22C55E) with darker bottom edge,
+glossy highlight, white outline. Small white shopping-cart icon on the left
+side; right side empty for in-game text. Aspect 4:1, transparent background.
+
+
+--------------------------------------------------------------------------------
+A11 - btn_toggle_rarity_common.png  (Filtro coleccion - comun)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Small square-rounded filter chip (1:1, 25% corner radius). Body in cool gray
+(#9CA4B0), white outline, simple white star icon centered. Transparent
+background, no text. Make it feel toggleable (button-like, not flat).
+
+
+--------------------------------------------------------------------------------
+A12 - btn_toggle_rarity_rare.png  (Filtro coleccion - raro)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Small square-rounded filter chip (1:1, 25% corner radius). Body in emerald
+green (#12BB82), white outline, TWO white star icons centered side by side.
+Transparent background, no text. Make it feel toggleable.
+
+
+--------------------------------------------------------------------------------
+A13 - btn_toggle_rarity_epic.png  (Filtro coleccion - epico)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Small square-rounded filter chip (1:1, 25% corner radius). Body in vibrant
+violet (#8D5CF0), white outline, THREE white star icons centered side by side.
+Transparent background, no text. Make it feel toggleable.
+
+
+--------------------------------------------------------------------------------
+A14 - btn_toggle_rarity_legendary.png  (Filtro coleccion - legendario)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Small square-rounded filter chip (1:1, 25% corner radius). Body in rich gold
+(#F59E04), white outline, FOUR white star icons in a small arc. Add a subtle
+inner glow. Transparent background, no text. Premium feel.
+
+
+--------------------------------------------------------------------------------
+A15 - btn_toggle_pets.png  (Tab filtro mascotas)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Square-rounded toggle tab (1:1). White pawprint icon centered on a soft pink
+(#F472B6) body. Glossy top highlight, white outline. Transparent background,
+no text. Should look like a matched pair with btn_toggle_items.png.
+
+
+--------------------------------------------------------------------------------
+A16 - btn_toggle_items.png  (Tab filtro items)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+Square-rounded toggle tab (1:1). White potion-bottle icon centered on a soft
+cyan (#38BDF8) body. Glossy top highlight, white outline. Transparent
+background, no text. Should look like a matched pair with btn_toggle_pets.png.
+
+
+
+================================================================================
+SECCION B - MARCOS Y OVERLAYS
+Carpeta destino: AlRescateJuego/Assets/_Project/Sprites/UI/Frames/
+================================================================================
+
+
+--------------------------------------------------------------------------------
+B1 - frame_common.png  (Marco rareza comun)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, saturated yet friendly
+palette, slightly chunky and rounded shapes, hand-drawn but crisp digital
+finish. NO outer drop shadow (this overlays the result card). Design an ornate
+square frame (1:1, 1024x1024, hollow inside with a 70% transparent center
+window). Border in cool gray (#9CA4B0) with thinner darker gray inner border.
+Simple rounded corners with small decorative notches at the four corners (no
+ornaments). Subtle inner shadow on the inside edge so the artwork inside feels
+recessed. Transparent background outside the frame.
+
+
+--------------------------------------------------------------------------------
+B2 - frame_rare.png  (Marco rareza rara)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, saturated friendly palette,
+chunky rounded shapes, hand-drawn but crisp digital finish. NO outer drop
+shadow. Ornate square frame (1:1, 1024x1024, hollow inside with a 70%
+transparent center window). Border color emerald (#12BB82) with a brighter
+mint highlight running along the top edge. Add four small diamond-shaped gems
+(one per corner) in lighter green. Subtle inner shadow on the inside edge.
+Transparent center hollow and transparent background outside.
+
+
+--------------------------------------------------------------------------------
+B3 - frame_epic.png  (Marco rareza epica)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, saturated friendly palette,
+chunky rounded shapes, hand-drawn but crisp digital finish. NO outer drop
+shadow. Ornate square frame (1:1, 1024x1024, hollow inside with a 70%
+transparent center window). Border in royal violet (#8D5CF0) with a magenta
+gradient sweeping across the top. Decorative flourishes at top-center and
+bottom-center: small ornamental swooshes in lighter violet. Four corner gems
+in pink-violet. Subtle outer halo glow in violet at 20% opacity. Subtle inner
+shadow on the inside edge. Transparent center and transparent background
+outside.
+
+
+--------------------------------------------------------------------------------
+B4 - frame_legendary.png  (Marco rareza legendaria)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, saturated friendly palette,
+chunky rounded shapes, hand-drawn but crisp digital finish. NO outer drop
+shadow. Ornate square frame (1:1, 1024x1024, hollow inside with a 70%
+transparent center window). Border in rich gold (#F59E04) with bright
+gold-white highlight on the top edge. Elaborate ornamental flourishes:
+scrollwork at top-center (small crown silhouette in lighter gold), corner gems
+with red ruby accents, small radiating sun-ray notches around the entire outer
+edge. Strong outer halo glow in warm gold at 35% opacity. Premium luxurious
+feel. Subtle inner shadow on the inside edge. Transparent center and
+transparent background outside.
+
+
+--------------------------------------------------------------------------------
+B5 - frame_glow.png  (Glow neutro reutilizable - se tinta dinamicamente)
+--------------------------------------------------------------------------------
+Soft radial glow / halo, PURE WHITE only (the in-game engine will tint it any
+color per rarity). Square 1024x1024, transparent background. Brightest at
+center, fading smoothly to transparent at the edges with a slightly bloomed,
+lens-flare quality. No outline, no shape - just a circular gradient. White
+only, no color.
+
+
+--------------------------------------------------------------------------------
+B6 - fx_shimmer.png  (Brillo barrido para tarjeta de resultado)
+--------------------------------------------------------------------------------
+A diagonal white shimmer streak suitable for swiping across the card during
+reveal. Two parallel diagonal bands of soft white at varying opacity
+(approximately 60% and 30%), angled 25 degrees, with feathered edges.
+Transparent background. Aspect 1:2 (tall) so it can be animated sliding across.
+Pure white only, no color, no outline.
+
+
+--------------------------------------------------------------------------------
+B7 - fx_beam_of_light.png  (Haz vertical para revelacion legendaria)
+--------------------------------------------------------------------------------
+Vertical beam of light, narrower at the top and flaring wider at the bottom,
+PURE WHITE (the engine will tint by rarity). 512x1024, transparent background.
+Soft feathered edges, bright crisp center. Includes a faint star-burst at the
+very top of the beam. White only, no color.
+
+
+--------------------------------------------------------------------------------
+B8 - panel_generic.png  (Marco de panel generico - Options, Welcome, Credits)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+9-slice-friendly rounded rectangle panel, aspect 4:3, body in soft cream
+(#FFF8EC) with thick warm brown outline (#8B5A2B) and a slightly darker brown
+bottom edge for depth. Small decorative ribbon-banner shape at the top-center
+(empty, no text). The center area should be flat cream so UI text reads
+cleanly on top. Transparent background outside the panel.
+
+
+--------------------------------------------------------------------------------
+B9 - silhouette_overlay.png  (Silueta de mascota no obtenida)
+--------------------------------------------------------------------------------
+Flat translucent black overlay (75% opacity black) shaped as a soft rounded
+square mask, with a small white "?" symbol centered. 512x512, transparent
+background outside the rounded square. Used to hide unowned pets in the
+collection grid. No outline, no shadow, no shading - just a flat black mask
+with a white question mark.
+
+
+
+================================================================================
+SECCION C - ICONOS
+Carpeta destino: AlRescateJuego/Assets/_Project/Sprites/UI/Icons/
+================================================================================
+
+
+--------------------------------------------------------------------------------
+C1 - icon_gem.png  (Gema - moneda premium)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A single faceted diamond-shaped gem, six-sided cut, vivid cyan-blue (#38BDF8)
+with a brighter cyan highlight on the upper-left facet and a darker navy facet
+on the lower-right. White outline (3 px equiv), subtle drop shadow. 512x512,
+transparent background, centered, leave 8% padding. Friendly chunky
+proportions, not too realistic.
+
+
+--------------------------------------------------------------------------------
+C2 - icon_cop.png  (Moneda Peso Colombiano)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A round golden coin (#F59E04) seen at a slight 15 degree tilt to feel
+three-dimensional. Embossed white "$" symbol in the center surrounded by a
+thin decorative laurel-leaf border. Darker amber edge for thickness. White
+outline, subtle drop shadow. 512x512, transparent background, centered.
+
+
+--------------------------------------------------------------------------------
+C3 - icon_new_badge.png  (Insignia "NEW")
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A starburst-shaped badge with 12 chunky points, body in vivid red (#EF4444)
+with a brighter pink highlight, thick white outline, subtle drop shadow.
+Centered area left blank (text "NEW" added in-engine). 256x256, transparent
+background. Slightly tilted 10 degrees clockwise for a playful sticker feel.
+
+
+--------------------------------------------------------------------------------
+C4 - icon_best_value.png  (Insignia "Mejor valor" - tienda)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A small banner-ribbon shape, body in gold (#F59E04) with darker amber
+underside fold, white outline. Two pointed ends (forked tails) on the right.
+Empty interior for text. 512x256 (wide), transparent background. Friendly,
+premium feel.
+
+
+--------------------------------------------------------------------------------
+C5 - icon_lock.png  (Candado - filtros bloqueados)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A chunky padlock silhouette, body in cool slate (#64748B) with darker slate
+bottom shading, white outline, tiny keyhole cutout in white. 256x256,
+transparent background, centered, leave generous padding.
+
+
+--------------------------------------------------------------------------------
+C6 - icon_settings_gear.png  (Engranaje suelto)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A single gear with 10 chunky rounded teeth, body in neutral gray (#94A3B8)
+with darker gray bottom shading, white outline, white inner circle hole.
+256x256, transparent background.
+
+
+--------------------------------------------------------------------------------
+C7 - icon_capsule.png  (Capsula gachapon pequena)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+An oval gachapon capsule split horizontally into two halves: top half
+translucent cyan (#7DD3FC) with a glossy highlight, bottom half opaque cream
+(#FFF8EC) with darker bottom shading. White outline. 256x256, transparent
+background, centered, slight 5 degree tilt.
+
+
+--------------------------------------------------------------------------------
+C8 - icon_paw.png  (Huella de pata - filtro mascotas)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A pawprint: one large rounded pad and four smaller toe pads above. Solid soft
+pink (#F472B6) with white outline, subtle drop shadow. 256x256, transparent
+background, centered.
+
+
+--------------------------------------------------------------------------------
+C9 - icon_potion.png  (Frasco item - filtro items)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A short round-bellied potion bottle with a small cork stopper. Glass body in
+soft cyan (#67E8F9) with sparkle highlight, liquid inside in deeper cyan,
+cork in warm tan, white outline. 256x256, transparent background, centered.
+
+
+--------------------------------------------------------------------------------
+C10 - icon_star.png  (Estrella reutilizable - tintable)
+--------------------------------------------------------------------------------
+A classic 5-point chunky star, SOLID WHITE with a thin slightly-darker gray
+outline (1 px equiv) so it can be tinted by code per rarity. 256x256,
+transparent background, centered. Render in pure white plus a 1-px gray
+outline only. No color, no drop shadow.
+
+
+--------------------------------------------------------------------------------
+C11 - icon_plus.png  (Simbolo "+" - boton shop "+ Gemas")
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A chunky plus sign with rounded line caps, solid white with thin dark navy
+outline, soft drop shadow. 256x256, transparent background, centered.
+
+
+--------------------------------------------------------------------------------
+C12 - icon_close_x.png  (Cerrar - X de paneles)
+--------------------------------------------------------------------------------
+Clean modern cartoon vector style for a mobile game UI: bold defined outlines,
+flat color fills with soft cel-shaded highlights, single drop shadow, saturated
+friendly palette, chunky rounded shapes, hand-drawn but crisp digital finish.
+A chunky X mark with rounded line caps, solid white with thin slate gray
+outline. 256x256, transparent background, centered.
+
+
+
+================================================================================
+SECCION D - PARTICULAS
+Carpeta destino: AlRescateJuego/Assets/_Project/Sprites/Particles/
+
+IMPORTANTE: TODAS las particulas deben ser BLANCO SOLO sobre fondo transparente.
+El motor las tinta con el color de la rareza en runtime usando el material
+aditivo Mat_Particle_Additive. NUNCA pidas color en estos prompts.
+================================================================================
+
+
+--------------------------------------------------------------------------------
+D1 - particle_soft_circle.png  (Particula basica reutilizable)
+--------------------------------------------------------------------------------
+Soft circular particle texture for a Unity additive particle system. Pure
+white radial gradient, brightest at the center (100% opacity) fading smoothly
+to fully transparent at the edges. No outline, no shape, perfectly symmetric.
+256x256, transparent background. Must look like a glowing dot when rendered
+with additive blending. White only, no color.
+
+
+--------------------------------------------------------------------------------
+D2 - particle_sparkle_star.png  (Destello en cruz)
+--------------------------------------------------------------------------------
+Sparkle texture for a Unity additive particle system. Four-point star shape
+(a vertical thin lens-flare streak crossing a horizontal thin streak, with a
+bright bloom in the center). Pure white, bright crisp center with feathered
+tapered ends. 256x256, transparent background. Used for rare / epic /
+legendary pull sparkles. White only, no color.
+
+
+--------------------------------------------------------------------------------
+D3 - particle_burst_ring.png  (Anillo de onda expansiva)
+--------------------------------------------------------------------------------
+Ring burst texture for a Unity additive particle system. A thin glowing ring
+(donut shape) with the inside hollow (transparent), pure white, soft outer
+feathering, slightly brighter on the inner edge. 256x256, transparent
+background. Used as a single shockwave on legendary reveal. White only, no
+color.
+
+
+--------------------------------------------------------------------------------
+D4 - particle_dust_speck.png  (Mota difusa)
+--------------------------------------------------------------------------------
+Tiny soft dust speck for a Unity additive particle system. Pure white blurry
+oval (slightly wider than tall), heavily feathered edges, low density.
+128x128, transparent background. Used for ambient floating dust around the
+gacha machine. White only, no color.
+
+
+--------------------------------------------------------------------------------
+D5 - particle_confetti_strip.png  (Tira de confeti)
+--------------------------------------------------------------------------------
+Confetti strip texture for a Unity additive particle system. A small
+rectangular shape with slightly wavy / curled edges (like a piece of paper),
+pure white with a thin lighter-white highlight along one edge. 256x256,
+transparent background. The engine will tint and rotate it in 3D. White only,
+no color.
+
+
+--------------------------------------------------------------------------------
+D6 - particle_machine_glow.png  (Resplandor de maquina)
+--------------------------------------------------------------------------------
+Soft elongated glow texture for a Unity additive particle system. Vertical
+capsule-shaped white blur, brighter in the center, smoothly feathered to
+transparent at the top and bottom. 256x512 (tall), transparent background.
+Used as the energy aura emanating from the gachapon machine during pull
+animation. White only, no color.
+
+
+================================================================================
+FIN - 43 prompts en total (16 botones + 9 marcos/overlays + 12 iconos + 6 particulas)
+================================================================================
