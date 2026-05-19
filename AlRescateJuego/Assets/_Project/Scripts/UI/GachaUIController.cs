@@ -43,6 +43,10 @@ public class GachaUIController : MonoBehaviour
         if (btnCloseOptions != null) btnCloseOptions.onClick.AddListener(() => SetCanvas(canvasOptions, false));
         revealController.SetPullAgainAction(OnPullX1);
 
+        // El boton "Cerrar" del panel de resultado tambien detiene el spin de la maquina
+        if (revealController != null && revealController.btnClose != null && gachaMachineShake != null)
+            revealController.btnClose.onClick.AddListener(gachaMachineShake.StopSpin);
+
         canvasResult.SetActive(false);
         canvasShop.SetActive(false);
         canvasCollection.SetActive(false);
@@ -98,20 +102,24 @@ public class GachaUIController : MonoBehaviour
 
     private void OnPullX1()
     {
+        Debug.Log($"[GachaUI] OnPullX1 click. gachaMachineShake={(gachaMachineShake == null ? "NULL" : gachaMachineShake.name)}");
         if (GachaManager.Instance.TryPullX1(out var r))
-        {
-            if (gachaMachineShake != null) gachaMachineShake.PlaySpin();
-            StartCoroutine(revealController.PlayX1(r));
-        }
+            StartCoroutine(RunPull(revealController.PlayX1(r)));
     }
 
     private void OnPullX10()
     {
+        Debug.Log($"[GachaUI] OnPullX10 click. gachaMachineShake={(gachaMachineShake == null ? "NULL" : gachaMachineShake.name)}");
         if (GachaManager.Instance.TryPullX10(out var results))
-        {
-            if (gachaMachineShake != null) gachaMachineShake.PlaySpin();
-            StartCoroutine(revealController.PlayX10(results));
-        }
+            StartCoroutine(RunPull(revealController.PlayX10(results)));
+    }
+
+    private System.Collections.IEnumerator RunPull(System.Collections.IEnumerator reveal)
+    {
+        if (gachaMachineShake != null) gachaMachineShake.StartSpin();
+        else Debug.LogWarning("[GachaUI] gachaMachineShake es NULL. Asignalo en el Inspector del HubController o ejecuta 'AlRescate/Configurar Animator GachaMachine'.");
+        yield return StartCoroutine(reveal);
+        // El spin sigue mientras el panel de resultado este abierto; se detiene al pulsar Cerrar.
     }
 
     private void OnOptionsClicked()

@@ -93,6 +93,8 @@ public class PlayerInventory : MonoBehaviour
         if (pet == null || !HasPet(pet.id)) return;
         EquippedPet = pet;
         SaveSystem.Current.equippedPetId = pet.id;
+        int subs = OnPetEquipped == null ? 0 : OnPetEquipped.GetInvocationList().Length;
+        Debug.Log($"[EquipPet] Invocando OnPetEquipped. Suscriptores={subs} pet={pet.id}");
         OnPetEquipped?.Invoke(pet);
         SaveSystem.Save();
         AudioManager.Instance.Play("sfx_pet_equip");

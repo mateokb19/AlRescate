@@ -18,6 +18,7 @@ public static class SaveSystem
         catch (System.Exception ex)
         { Debug.LogWarning($"[SaveSystem] No se pudo escribir JSON: {ex.Message}"); }
         Debug.Log("[SaveSystem] Guardado. Gemas=" + Current.gems);
+        Debug.Log("FuncionA=" );
     }
 
     public static void Load()
