@@ -20,6 +20,9 @@ public class AudioManager : MonoBehaviour
     private Dictionary<string, AudioClip> _sfxDict;
     private List<AudioSource> _sfxPool;
     private AudioSource _musicSource;
+    private float _lastVolumeMaster = 1f;
+    private float _lastVolumeMusic  = 1f;
+    private float _lastVolumeSfx    = 1f;
 
     [System.Serializable]
     public class AudioEntry
@@ -60,9 +63,13 @@ public class AudioManager : MonoBehaviour
 
     public void PlayHubMusic()
     {
-        if (hubMusic == null) return;
+        if (hubMusic == null) { Debug.LogWarning("[AudioManager] hubMusic no asignado."); return; }
+        // Garantizar que el mixer no esté en silencio antes de reproducir
+        SetMasterVolume(Mathf.Max(0.01f, _lastVolumeMaster));
+        SetMusicVolume(Mathf.Max(0.01f, _lastVolumeMusic));
         _musicSource.clip = hubMusic;
         _musicSource.Play();
+        Debug.Log("[AudioManager] PlayHubMusic -> " + hubMusic.name);
     }
 
     public void StopMusic() => _musicSource.Stop();
@@ -87,9 +94,9 @@ public class AudioManager : MonoBehaviour
         return _sfxPool[0];
     }
 
-    public void SetMasterVolume(float linear) => SetMixer("Volume_Master", linear);
-    public void SetMusicVolume(float linear) => SetMixer("Volume_Music", linear);
-    public void SetSfxVolume(float linear) => SetMixer("Volume_SFX", linear);
+    public void SetMasterVolume(float linear) { _lastVolumeMaster = linear; SetMixer("Volume_Master", linear); }
+    public void SetMusicVolume(float linear)  { _lastVolumeMusic  = linear; SetMixer("Volume_Music",  linear); }
+    public void SetSfxVolume(float linear)    { _lastVolumeSfx    = linear; SetMixer("Volume_SFX",    linear); }
 
     private void SetMixer(string param, float linear)
     {
