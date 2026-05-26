@@ -37,7 +37,6 @@ public class ResultCardView : MonoBehaviour
         }
 
         nameText.color = Color.white;
-        nameText.fontSize = 28;
 
         rarityText.text = r.rarity.ToString().ToUpper();
         rarityText.color = rarityColor;
@@ -46,8 +45,13 @@ public class ResultCardView : MonoBehaviour
         if (frameImage != null)
         {
             frameImage.color = rarityColor;
-            if (FrameByRarity(r.rarity) != null)
-                frameImage.sprite = FrameByRarity(r.rarity);
+            var frameSprite = FrameByRarity(r.rarity);
+            if (frameSprite != null)
+            {
+                frameImage.sprite = frameSprite;
+                frameImage.type = Image.Type.Simple;
+                frameImage.preserveAspect = false;
+            }
         }
 
         if (frameGlow != null)
