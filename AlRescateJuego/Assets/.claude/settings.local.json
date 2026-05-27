@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/mateo/OneDrive/Escritorio/AlRescate/AlRescateJuego/**)",
-      "Bash(cat .gitignore)"
+      "Bash(cat .gitignore)",
+      "Bash(Select-String *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\mateo\\\\OneDrive\\\\Escritorio\\\\AlRescate\" -Recurse -Depth 1)",
+      "Bash(Select-Object FullName, Name)",
+      "Bash(powershell -Command \"Select-String -Path '01_GachaHub.unity' -Pattern 'name: Content|name: Section_Pets|name: Section_Items|name: Grid_Pets|name: Grid_Items|name: Divider_Pets|name: Divider_Items|name: Header_Pets|name: Header_Items|Canvas_Shop' | Select-Object -First 50\")",
+      "Bash(powershell *)",
+      "Bash(git pull *)",
+      "Bash(git checkout *)"
     ]
   }
 }
